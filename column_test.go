@@ -29,13 +29,14 @@ func TestSize(t *testing.T) {
 func TestSpecs(t *testing.T) {
 	c := column{
 		name: "name",
-		tag:  "size=10,pk,default=jon",
+		tag:  "size=10,pk,default=jon,comment=comment",
 	}
 
 	specs := map[string]string{
 		"size":    "10",
 		"pk":      "",
 		"default": "jon",
+		"comment": "comment",
 	}
 
 	if !reflect.DeepEqual(c.specs(), specs) {
@@ -62,6 +63,11 @@ func TestAttribute(t *testing.T) {
 
 	c.tag = "auto"
 	if c.attribute() != "NOT NULL AUTO_INCREMENT" {
+		t.Fatalf("error column attribute. result:%s", c.attribute())
+	}
+
+	c.tag = "comment=hello"
+	if c.attribute() != "NOT NULL COMMENT 'hello'" {
 		t.Fatalf("error column attribute. result:%s", c.attribute())
 	}
 }
