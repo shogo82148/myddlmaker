@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kayac/ddl-maker/dialect/mysql"
+	"github.com/shogo82148/ddl-maker/dialect/mysql"
 )
 
 func TestSize(t *testing.T) {

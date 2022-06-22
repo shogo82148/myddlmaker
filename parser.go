@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/kayac/ddl-maker/dialect"
 	"github.com/serenize/snaker"
+	"github.com/shogo82148/ddl-maker/dialect"
 )
 
 // Table is for type assertion

@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"text/template"
 
-	"github.com/kayac/ddl-maker/dialect"
 	"github.com/pkg/errors"
+	"github.com/shogo82148/ddl-maker/dialect"
 )
 
 const (
