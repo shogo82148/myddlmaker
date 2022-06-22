@@ -1,4 +1,4 @@
-module github.com/kayac/ddl-maker
+module github.com/shogo82148/ddl-maker
 
 go 1.12
 
