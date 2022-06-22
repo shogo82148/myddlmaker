@@ -10,8 +10,12 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        go: ["1.17", "1.16"]
+        go:
+          - "1.18"
+          - "1.17"
+          - "1.16"
     steps:
       - name: Set up Go
         uses: actions/setup-go@v2
