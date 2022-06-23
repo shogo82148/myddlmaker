@@ -70,6 +70,10 @@ func (c column) attribute() string {
 		attributes = append(attributes, c.dialect.AutoIncrement())
 	}
 
+	if value, ok := specs["comment"]; ok {
+		attributes = append(attributes, fmt.Sprintf("COMMENT '%s'", value))
+	}
+
 	return strings.Join(attributes, " ")
 }
 
