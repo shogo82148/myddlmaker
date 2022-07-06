@@ -91,14 +91,9 @@ func (dm *DDLMaker) Generate() error {
 }
 
 func (dm *DDLMaker) generate(w io.Writer) error {
-	header, err := template.New("header").Parse(dm.Dialect.HeaderTemplate())
+	_, err := io.WriteString(w, "SET foreign_key_checks=0;\n")
 	if err != nil {
-		return errors.Wrap(err, "error parse header template")
-	}
-
-	footer, err := template.New("footer").Parse(dm.Dialect.FooterTemplate())
-	if err != nil {
-		return errors.Wrap(err, "error parse header footer")
+		return fmt.Errorf("myddlmaker: failed to write the header: %w", err)
 	}
 
 	tmpl, err := template.New("ddl").Parse(dm.Dialect.TableTemplate())
@@ -106,17 +101,16 @@ func (dm *DDLMaker) generate(w io.Writer) error {
 		return errors.Wrap(err, "error parse template")
 	}
 
-	if err := header.Execute(w, nil); err != nil {
-		return errors.Wrap(err, "template execute error")
-	}
 	for _, table := range dm.Tables {
 		err := tmpl.Execute(w, table)
 		if err != nil {
 			return errors.Wrap(err, "template execute error")
 		}
 	}
-	if err := footer.Execute(w, nil); err != nil {
-		return errors.Wrap(err, "template execute error")
+
+	_, err = io.WriteString(w, "SET foreign_key_checks=1;\n")
+	if err != nil {
+		return fmt.Errorf("myddlmaker: failed to write the footer: %w", err)
 	}
 
 	return nil

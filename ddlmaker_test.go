@@ -3,7 +3,6 @@ package ddlmaker
 import (
 	"bytes"
 	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
@@ -82,33 +81,34 @@ func TestAddStruct(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
-	m := mysql.MySQL{}
-	generatedDDL := fmt.Sprintf(`%s
-DROP TABLE IF EXISTS %s;
+	generatedDDL := "SET foreign_key_checks=0;\n" +
+		"\n" +
+		"DROP TABLE IF EXISTS `test1`;\n" +
+		"\n" +
+		"CREATE TABLE `test1` (\n" +
+		"    `id` BIGINT unsigned NOT NULL,\n" +
+		"    `name` VARCHAR(191) NOT NULL,\n" +
+		"    `created_at` DATETIME NOT NULL,\n" +
+		"    `updated_at` DATETIME NOT NULL,\n" +
+		"    PRIMARY KEY (`id`)\n" +
+		") ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;\n" +
+		"\n" +
+		"SET foreign_key_checks=1;\n"
 
-CREATE TABLE %s (
-    %s BIGINT unsigned NOT NULL,
-    %s VARCHAR(191) NOT NULL,
-    %s DATETIME NOT NULL,
-    %s DATETIME NOT NULL,
-    PRIMARY KEY (%s)
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-
-%s`, m.HeaderTemplate(), m.Quote("test1"), m.Quote("test1"), m.Quote("id"), m.Quote("name"), m.Quote("created_at"), m.Quote("updated_at"), m.Quote("id"), m.FooterTemplate())
-
-	generatedDDL2 := fmt.Sprintf(`%s
-DROP TABLE IF EXISTS %s;
-
-CREATE TABLE %s (
-    %s BIGINT unsigned NOT NULL,
-    %s BIGINT unsigned NOT NULL,
-    %s VARCHAR(191) NULL,
-    %s DATETIME NOT NULL,
-    %s DATETIME NOT NULL,
-    PRIMARY KEY (%s, %s)
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
-
-%s`, m.HeaderTemplate(), m.Quote("test2"), m.Quote("test2"), m.Quote("id"), m.Quote("test1_id"), m.Quote("comment"), m.Quote("created_at"), m.Quote("updated_at"), m.Quote("id"), m.Quote("created_at"), m.FooterTemplate())
+	generatedDDL2 := "SET foreign_key_checks=0;\n" +
+		"\n" +
+		"DROP TABLE IF EXISTS `test2`;\n" +
+		"\n" +
+		"CREATE TABLE `test2` (\n" +
+		"    `id` BIGINT unsigned NOT NULL,\n" +
+		"    `test1_id` BIGINT unsigned NOT NULL,\n" +
+		"    `comment` VARCHAR(191) NULL,\n" +
+		"    `created_at` DATETIME NOT NULL,\n" +
+		"    `updated_at` DATETIME NOT NULL,\n" +
+		"    PRIMARY KEY (`id`, `created_at`)\n" +
+		") ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;\n" +
+		"\n" +
+		"SET foreign_key_checks=1;\n"
 
 	dm, err := New(Config{
 		DB: DBConfig{
@@ -145,6 +145,9 @@ CREATE TABLE %s (
 			Charset: "utf8mb4",
 		},
 	})
+	if err != nil {
+		t.Fatal("error new maker", err)
+	}
 
 	err = dm2.AddStruct(&Test2{})
 	if err != nil {

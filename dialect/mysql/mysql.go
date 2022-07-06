@@ -112,12 +112,6 @@ func WithDeleteForeignKeyOption(option ForeignKeyOptionType) ForeignKeyOption {
 	return withDeleteForeignKeyOption(option)
 }
 
-// HeaderTemplate XXX
-func (mysql MySQL) HeaderTemplate() string {
-	return `SET foreign_key_checks=0;
-`
-}
-
 // FooterTemplate XXX
 func (mysql MySQL) FooterTemplate() string {
 	return `SET foreign_key_checks=1;
