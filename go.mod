@@ -1,6 +1,6 @@
 module github.com/shogo82148/myddlmaker
 
-go 1.12
+go 1.18
 
 require (
 	github.com/onsi/ginkgo v1.15.0 // indirect
