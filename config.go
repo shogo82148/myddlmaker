@@ -1,4 +1,4 @@
-package ddlmaker
+package myddlmaker
 
 // Config set user environment
 type Config struct {

@@ -1,4 +1,4 @@
-package ddlmaker
+package myddlmaker
 
 import (
 	"database/sql"
@@ -29,8 +29,8 @@ func (t1 T1) Indexes() dialect.Indexes {
 	}
 }
 
-func (t1 T1) PrimaryKey() dialect.PrimaryKey {
-	return mysql.AddPrimaryKey("id", "created_at")
+func (t1 T1) PrimaryKey() *PrimaryKey {
+	return AddPrimaryKey("id", "created_at")
 }
 
 func (t1 T1) ForeignKeys() dialect.ForeignKeys {
@@ -105,10 +105,6 @@ func TestParseTable(t *testing.T) {
 
 	if len(table.Indexes()) != len(t1.Indexes()) {
 		t.Fatal("error parse index ", len(table.Indexes()))
-	}
-
-	if table.PrimaryKey().ToSQL() != "PRIMARY KEY (`id`, `created_at`)" {
-		t.Fatal("error parse pk: ", table.PrimaryKey().ToSQL())
 	}
 
 	if len(table.ForeignKeys()) != len(t1.ForeignKeys()) {

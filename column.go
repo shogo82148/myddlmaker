@@ -1,4 +1,4 @@
-package ddlmaker
+package myddlmaker
 
 import (
 	"fmt"

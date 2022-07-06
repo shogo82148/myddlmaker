@@ -1,4 +1,4 @@
-package ddlmaker
+package myddlmaker
 
 import (
 	"github.com/shogo82148/myddlmaker/dialect"
@@ -7,14 +7,14 @@ import (
 // Table is mapping struct info
 type table struct {
 	name        string
-	primaryKey  dialect.PrimaryKey
+	primaryKey  *PrimaryKey
 	foreignKeys dialect.ForeignKeys
 	columns     []dialect.Column
 	indexes     dialect.Indexes
 	dialect     dialect.Dialect
 }
 
-func newTable(name string, pk dialect.PrimaryKey, fks dialect.ForeignKeys, columns []dialect.Column, indexes dialect.Indexes, d dialect.Dialect) table {
+func newTable(name string, pk *PrimaryKey, fks dialect.ForeignKeys, columns []dialect.Column, indexes dialect.Indexes, d dialect.Dialect) table {
 	return table{
 		name:        name,
 		primaryKey:  pk,
@@ -29,7 +29,7 @@ func (t table) Name() string {
 	return t.dialect.Quote(t.name)
 }
 
-func (t table) PrimaryKey() dialect.PrimaryKey {
+func (t table) PrimaryKey() *PrimaryKey {
 	return t.primaryKey
 }
 

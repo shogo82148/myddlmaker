@@ -1,4 +1,4 @@
-package ddlmaker
+package myddlmaker
 
 import (
 	"fmt"
@@ -10,14 +10,20 @@ import (
 	"github.com/shogo82148/myddlmaker/dialect"
 )
 
+// PrimaryKey describes primary keys of MySQL tables.
+type PrimaryKey struct {
+	columns []string
+}
+
+func AddPrimaryKey(columns ...string) *PrimaryKey {
+	return &PrimaryKey{
+		columns: columns,
+	}
+}
+
 // Table is for type assertion
 type Table interface {
 	Table() string
-}
-
-// PrimaryKey is for type assertion
-type PrimaryKey interface {
-	PrimaryKey() dialect.PrimaryKey
 }
 
 // ForeignKey is for type assertion
@@ -87,7 +93,7 @@ func parseField(field reflect.StructField, d dialect.Dialect) (dialect.Column, e
 
 func parseTable(s interface{}, columns []dialect.Column, d dialect.Dialect) dialect.Table {
 	var tableName string
-	var primaryKey dialect.PrimaryKey
+	var primaryKey *PrimaryKey
 	var foreignKeys dialect.ForeignKeys
 	var indexes dialect.Indexes
 
@@ -97,7 +103,7 @@ func parseTable(s interface{}, columns []dialect.Column, d dialect.Dialect) dial
 		val := reflect.Indirect(reflect.ValueOf(s))
 		tableName = snaker.CamelToSnake(val.Type().Name())
 	}
-	if v, ok := s.(PrimaryKey); ok {
+	if v, ok := s.(interface{ PrimaryKey() *PrimaryKey }); ok {
 		primaryKey = v.PrimaryKey()
 	}
 	if v, ok := s.(ForeignKey); ok {

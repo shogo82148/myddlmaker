@@ -1,13 +1,10 @@
-package ddlmaker
+package myddlmaker
 
 import (
 	"bytes"
 	"database/sql"
 	"testing"
 	"time"
-
-	"github.com/shogo82148/myddlmaker/dialect"
-	"github.com/shogo82148/myddlmaker/dialect/mysql"
 )
 
 type Test1 struct {
@@ -17,8 +14,8 @@ type Test1 struct {
 	UpdatedAt time.Time
 }
 
-func (t1 Test1) PrimaryKey() dialect.PrimaryKey {
-	return mysql.AddPrimaryKey("id")
+func (t1 Test1) PrimaryKey() *PrimaryKey {
+	return AddPrimaryKey("id")
 }
 
 type Test2 struct {
@@ -29,8 +26,8 @@ type Test2 struct {
 	UpdatedAt time.Time
 }
 
-func (t2 *Test2) PrimaryKey() dialect.PrimaryKey {
-	return mysql.AddPrimaryKey("id", "created_at")
+func (t2 *Test2) PrimaryKey() *PrimaryKey {
+	return AddPrimaryKey("id", "created_at")
 }
 
 func TestNew(t *testing.T) {

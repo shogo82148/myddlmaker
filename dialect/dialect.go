@@ -18,7 +18,6 @@ type Dialect interface {
 // Table XXX
 type Table interface {
 	Name() string
-	PrimaryKey() PrimaryKey
 	ForeignKeys() ForeignKeys
 	Indexes() Indexes
 	Columns() []Column
@@ -28,12 +27,6 @@ type Table interface {
 // Column XXX
 type Column interface {
 	Name() string
-	ToSQL() string
-}
-
-// PrimaryKey XXX
-type PrimaryKey interface {
-	Columns() []string
 	ToSQL() string
 }
 
