@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/serenize/snaker"
-	"github.com/shogo82148/ddl-maker/dialect"
+	"github.com/shogo82148/myddlmaker/dialect"
 )
 
 // Table is for type assertion

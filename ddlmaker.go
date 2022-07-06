@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/shogo82148/ddl-maker/dialect"
+	"github.com/shogo82148/myddlmaker/dialect"
 )
 
 const (

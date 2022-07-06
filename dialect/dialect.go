@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/shogo82148/ddl-maker/dialect/mysql"
+	"github.com/shogo82148/myddlmaker/dialect/mysql"
 )
 
 // Dialect XXX

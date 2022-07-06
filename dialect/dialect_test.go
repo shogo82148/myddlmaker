@@ -3,7 +3,7 @@ package dialect
 import (
 	"testing"
 
-	"github.com/shogo82148/ddl-maker/dialect/mysql"
+	"github.com/shogo82148/myddlmaker/dialect/mysql"
 )
 
 func TestNew(t *testing.T) {

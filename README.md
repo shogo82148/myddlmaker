@@ -1,8 +1,8 @@
-# ddl-maker
+# myddlmaker
 
-ddl-maker is generate ddl from Go struct.
+myddlmaker is generate ddl from Go struct.
 
-![Build Status](https://github.com/shogo82148/ddl-maker/workflows/Go/badge.svg)
+![Build Status](https://github.com/shogo82148/myddlmaker/workflows/Go/badge.svg)
 
 
 # How to use
@@ -16,8 +16,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/shogo82148/ddl-maker/dialect"
-	"github.com/shogo82148/ddl-maker/dialect/mysql"
+	"github.com/shogo82148/myddlmaker/dialect"
+	"github.com/shogo82148/myddlmaker/dialect/mysql"
 )
 
 type User struct {
@@ -137,8 +137,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/shogo82148/ddl-maker"
-	ex "github.com/shogo82148/ddl-maker/_example"
+	"github.com/shogo82148/myddlmaker"
+	ex "github.com/shogo82148/myddlmaker/_example"
 )
 
 func main() {

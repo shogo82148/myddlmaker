@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/shogo82148/ddl-maker/dialect"
+	"github.com/shogo82148/myddlmaker/dialect"
 )
 
 // column is mapping struct field value.
