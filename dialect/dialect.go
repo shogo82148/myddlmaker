@@ -9,7 +9,6 @@ import (
 
 // Dialect XXX
 type Dialect interface {
-	FooterTemplate() string
 	TableTemplate() string
 	ToSQL(typeName string, size uint64) string
 	Quote(string) string
