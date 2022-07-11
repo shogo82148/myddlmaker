@@ -1,12 +1,39 @@
 package myddlmaker
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-type FooBar struct{}
+type myInt int64
+
+type FooBar struct {
+	Int8   int8
+	Int16  int16
+	Int32  int32
+	Int64  int64
+	Uint8  uint8
+	Uint16 uint16
+	Uint32 uint32
+	Uint64 uint64
+	String string
+	Bool   bool
+	MyInt  myInt
+
+	PInt8  *int8
+	PPInt8 **int8
+}
 
 func TestTable(t *testing.T) {
-	table := newTable(&FooBar{})
+	table, err := newTable(&FooBar{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if table.name != "foo_bar" {
 		t.Errorf("unexpected table name: want %q, got %q", "foo_bar", table.name)
+	}
+
+	for _, col := range table.columns {
+		fmt.Println(col)
 	}
 }
