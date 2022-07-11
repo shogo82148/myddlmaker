@@ -10,6 +10,6 @@ func newTable(s any) *table {
 	val := reflect.Indirect(reflect.ValueOf(s))
 	typ := val.Type()
 	return &table{
-		name: typ.Name(),
+		name: camelToSnake(typ.Name()),
 	}
 }
