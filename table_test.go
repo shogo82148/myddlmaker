@@ -8,6 +8,7 @@ import (
 type myInt int64
 
 type FooBar struct {
+	// primitive types
 	Int8   int8
 	Int16  int16
 	Int32  int32
@@ -18,10 +19,16 @@ type FooBar struct {
 	Uint64 uint64
 	String string
 	Bool   bool
-	MyInt  myInt
 
+	// custom type
+	MyInt myInt
+
+	// pointers
 	PInt8  *int8
 	PPInt8 **int8
+
+	// customize the name
+	Hoge int32 `ddl:"fuga"`
 }
 
 func TestTable(t *testing.T) {

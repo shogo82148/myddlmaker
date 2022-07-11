@@ -3,6 +3,15 @@ package myddlmaker
 import (
 	"fmt"
 	"reflect"
+	"strings"
+)
+
+var (
+	// StructTagName is the key name of the tag string.
+	StructTagName = "ddl"
+
+	// IgnoreName is the string that myddlmaker ignores.
+	IgnoreName = "-"
 )
 
 type table struct {
@@ -34,11 +43,18 @@ func newTable(s any) (*table, error) {
 }
 
 type column struct {
-	typ string
+	name string
+	typ  string
 }
 
 func newColumn(f reflect.StructField) (*column, error) {
 	col := &column{}
+
+	name, _, _ := strings.Cut(f.Tag.Get(StructTagName), ",")
+	if name == "" {
+		name = camelToSnake(f.Name)
+	}
+	col.name = name
 
 	switch direct(f.Type).Kind() {
 	case reflect.Bool:
