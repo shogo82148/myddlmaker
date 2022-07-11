@@ -1,8 +1,10 @@
 package myddlmaker
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 )
 
 type myInt int64
@@ -29,6 +31,18 @@ type FooBar struct {
 
 	// customize the name
 	Hoge int32 `ddl:"fuga"`
+	Fuga int32 `ddl:"-"`
+
+	// well-known struct types
+	Time        time.Time
+	NullTime    sql.NullTime
+	NullString  sql.NullString
+	NullBool    sql.NullBool
+	NullByte    sql.NullByte
+	NullFloat64 sql.NullFloat64
+	NullInt16   sql.NullInt16
+	NullInt32   sql.NullInt32
+	NullInt64   sql.NullInt64
 }
 
 func TestTable(t *testing.T) {

@@ -1,9 +1,11 @@
 package myddlmaker
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 var (
@@ -47,6 +49,16 @@ type column struct {
 	typ  string
 }
 
+var timeType = reflect.TypeOf(time.Time{})
+var nullTimeType = reflect.TypeOf(sql.NullTime{})
+var nullStringType = reflect.TypeOf(sql.NullString{})
+var nullBoolType = reflect.TypeOf(sql.NullBool{})
+var nullByteType = reflect.TypeOf(sql.NullByte{})
+var nullFloat64Type = reflect.TypeOf(sql.NullFloat64{})
+var nullInt16Type = reflect.TypeOf(sql.NullInt16{})
+var nullInt32Type = reflect.TypeOf(sql.NullInt32{})
+var nullInt64Type = reflect.TypeOf(sql.NullInt64{})
+
 func newColumn(f reflect.StructField) (*column, error) {
 	col := &column{}
 
@@ -56,7 +68,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 	}
 	col.name = name
 
-	switch direct(f.Type).Kind() {
+	typ := direct(f.Type)
+	switch typ.Kind() {
 	case reflect.Bool:
 		col.typ = "TINYINT(1)"
 	case reflect.Int8:
@@ -81,6 +94,31 @@ func newColumn(f reflect.StructField) (*column, error) {
 		col.typ = "DOUBLE"
 	case reflect.String:
 		col.typ = "VARCHAR(191)"
+	case reflect.Struct:
+		switch typ {
+		case timeType:
+			col.typ = "DATETIME"
+		case nullTimeType:
+			col.typ = "DATETIME"
+		case nullStringType:
+			col.typ = "VARCHAR(191)"
+		case nullBoolType:
+			col.typ = "TINYINT(1)"
+		case nullByteType:
+			col.typ = "VARBINARY(767)"
+		case nullFloat64Type:
+			col.typ = "DOUBLE"
+		case nullInt16Type:
+			col.typ = "SMALLINT"
+		case nullInt32Type:
+			col.typ = "INTEGER"
+		case nullInt64Type:
+			col.typ = "BIGINT"
+		default:
+			return nil, fmt.Errorf("myddlmaker: unknown type: %v", typ)
+		}
+	default:
+		return nil, fmt.Errorf("myddlmaker: unknown type: %v", typ)
 	}
 	return col, nil
 }
