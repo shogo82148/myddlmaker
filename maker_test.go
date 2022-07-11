@@ -31,7 +31,7 @@ func TestMaker(t *testing.T) {
 		"DROP TABLE IF EXISTS `foo1`;\n\n" +
 		"CREATE TABLE `foo1` (\n" +
 		"    `id` INTEGER,\n" +
-		"    PRIMARY KEY (`id`)" +
+		"    PRIMARY KEY (`id`)\n" +
 		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n" +
 		"SET foreign_key_checks=1;\n"
 	if got != want {
