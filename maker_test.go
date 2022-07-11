@@ -9,6 +9,10 @@ type Foo1 struct {
 	ID int32
 }
 
+func (*Foo1) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func TestMaker(t *testing.T) {
 	m, err := New(&Config{})
 	if err != nil {

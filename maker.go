@@ -63,7 +63,7 @@ func (m *Maker) Generate(w io.Writer) error {
 		for _, col := range table.columns {
 			fmt.Fprintf(&buf, "    %s %s,\n", quote(col.name), col.typ)
 		}
-		fmt.Fprintf(&buf, "    PRIMARY KEY (`id`)") // FIX ME
+		fmt.Fprintf(&buf, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
 		fmt.Fprintf(&buf, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
 	}
 
@@ -102,4 +102,26 @@ func quote(s string) string {
 	}
 	buf.WriteByte('`')
 	return buf.String()
+}
+
+func quoteAll(strings []string) []string {
+	ret := make([]string, len(strings))
+	for i, s := range strings {
+		ret[i] = quote(s)
+	}
+	return ret
+}
+
+type PrimaryKey struct {
+	columns []string
+}
+
+type primaryKey interface {
+	PrimaryKey() *PrimaryKey
+}
+
+func NewPrimaryKey(field ...string) *PrimaryKey {
+	return &PrimaryKey{
+		columns: field,
+	}
 }
