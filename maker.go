@@ -58,13 +58,7 @@ func (m *Maker) Generate(w io.Writer) error {
 
 	buf.WriteString("SET foreign_key_checks=0;\n")
 	for _, table := range m.tables {
-		fmt.Fprintf(&buf, "DROP TABLE IF EXISTS %s;\n\n", quote(table.name))
-		fmt.Fprintf(&buf, "CREATE TABLE %s (\n", quote(table.name))
-		for _, col := range table.columns {
-			fmt.Fprintf(&buf, "    %s %s,\n", quote(col.name), col.typ)
-		}
-		fmt.Fprintf(&buf, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
-		fmt.Fprintf(&buf, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
+		m.generateTable(&buf, table)
 	}
 
 	buf.WriteString("SET foreign_key_checks=1;\n")
@@ -85,6 +79,30 @@ func (m *Maker) parse() error {
 		m.tables[i] = tbl
 	}
 	return nil
+}
+
+func (m *Maker) generateTable(w io.Writer, table *table) {
+	fmt.Fprintf(w, "DROP TABLE IF EXISTS %s;\n\n", quote(table.name))
+	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.name))
+	for _, col := range table.columns {
+		m.generateColumn(w, col)
+	}
+	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
+	fmt.Fprintf(w, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
+}
+
+func (m *Maker) generateColumn(w io.Writer, col *column) {
+	io.WriteString(w, "    ")
+	io.WriteString(w, quote(col.name))
+	io.WriteString(w, " ")
+	io.WriteString(w, col.typ)
+	if col.size != 0 {
+		fmt.Fprintf(w, "(%d)", col.size)
+	}
+	if col.unsigned {
+		io.WriteString(w, " unsigned")
+	}
+	io.WriteString(w, ",\n")
 }
 
 func quote(s string) string {

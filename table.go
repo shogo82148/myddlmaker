@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -50,8 +51,10 @@ func newTable(s any) (*table, error) {
 }
 
 type column struct {
-	name string
-	typ  string
+	name     string
+	typ      string
+	size     int
+	unsigned bool
 }
 
 var timeType = reflect.TypeOf(time.Time{})
@@ -67,16 +70,11 @@ var nullInt64Type = reflect.TypeOf(sql.NullInt64{})
 func newColumn(f reflect.StructField) (*column, error) {
 	col := &column{}
 
-	name, _, _ := strings.Cut(f.Tag.Get(StructTagName), ",")
-	if name == "" {
-		name = camelToSnake(f.Name)
-	}
-	col.name = name
-
 	typ := indirect(f.Type)
 	switch typ.Kind() {
 	case reflect.Bool:
-		col.typ = "TINYINT(1)"
+		col.typ = "TINYINT"
+		col.size = 1
 	case reflect.Int8:
 		col.typ = "TINYINT"
 	case reflect.Int16:
@@ -86,19 +84,24 @@ func newColumn(f reflect.StructField) (*column, error) {
 	case reflect.Int64:
 		col.typ = "BIGINT"
 	case reflect.Uint8:
-		col.typ = "TINYINT unsigned"
+		col.typ = "TINYINT"
+		col.unsigned = true
 	case reflect.Uint16:
-		col.typ = "SMALLINT unsigned"
+		col.typ = "SMALLINT"
+		col.unsigned = true
 	case reflect.Uint32:
-		col.typ = "INTEGER unsigned"
+		col.typ = "INTEGER"
+		col.unsigned = true
 	case reflect.Uint64:
-		col.typ = "BIGINT unsigned"
+		col.typ = "BIGINT"
+		col.unsigned = true
 	case reflect.Float32:
 		col.typ = "FLOAT"
 	case reflect.Float64:
 		col.typ = "DOUBLE"
 	case reflect.String:
-		col.typ = "VARCHAR(191)"
+		col.typ = "VARCHAR"
+		col.size = 191
 	case reflect.Struct:
 		switch typ {
 		case timeType:
@@ -106,11 +109,14 @@ func newColumn(f reflect.StructField) (*column, error) {
 		case nullTimeType:
 			col.typ = "DATETIME"
 		case nullStringType:
-			col.typ = "VARCHAR(191)"
+			col.typ = "VARCHAR"
+			col.size = 191
 		case nullBoolType:
-			col.typ = "TINYINT(1)"
+			col.typ = "TINYINT"
+			col.size = 1
 		case nullByteType:
-			col.typ = "VARBINARY(767)"
+			col.typ = "VARBINARY"
+			col.size = 767
 		case nullFloat64Type:
 			col.typ = "DOUBLE"
 		case nullInt16Type:
@@ -119,12 +125,28 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.typ = "INTEGER"
 		case nullInt64Type:
 			col.typ = "BIGINT"
-		default:
-			return nil, fmt.Errorf("myddlmaker: unknown type: %v", typ)
 		}
-	default:
-		return nil, fmt.Errorf("myddlmaker: unknown type: %v", typ)
 	}
+
+	// parse the tag of the field.
+	name, remain, _ := strings.Cut(f.Tag.Get(StructTagName), ",")
+	if name == "" {
+		name = camelToSnake(f.Name)
+	}
+	col.name = name
+	for len(remain) > 0 {
+		var opt string
+		opt, remain, _ = strings.Cut(remain, ",")
+		switch {
+		case strings.HasPrefix(opt, "size="):
+			v, err := strconv.ParseInt(opt[len("size="):], 10, 0)
+			if err != nil {
+				return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
+			}
+			col.size = int(v)
+		}
+	}
+
 	return col, nil
 }
 
