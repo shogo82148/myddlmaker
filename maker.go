@@ -82,27 +82,27 @@ func (m *Maker) parse() error {
 }
 
 func (m *Maker) generateTable(w io.Writer, table *table) {
-	fmt.Fprintf(w, "DROP TABLE IF EXISTS %s;\n\n", quote(table.name))
-	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.name))
-	for _, col := range table.columns {
+	fmt.Fprintf(w, "DROP TABLE IF EXISTS %s;\n\n", quote(table.Name))
+	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.Name))
+	for _, col := range table.Columns {
 		m.generateColumn(w, col)
 	}
-	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
+	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.PrimaryKey.columns), ", "))
 	fmt.Fprintf(w, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
 }
 
 func (m *Maker) generateColumn(w io.Writer, col *column) {
 	io.WriteString(w, "    ")
-	io.WriteString(w, quote(col.name))
+	io.WriteString(w, quote(col.Name))
 	io.WriteString(w, " ")
-	io.WriteString(w, col.typ)
-	if col.size != 0 {
-		fmt.Fprintf(w, "(%d)", col.size)
+	io.WriteString(w, col.Type)
+	if col.Size != 0 {
+		fmt.Fprintf(w, "(%d)", col.Size)
 	}
-	if col.unsigned {
+	if col.Unsigned {
 		io.WriteString(w, " unsigned")
 	}
-	if col.null {
+	if col.Null {
 		io.WriteString(w, " NULL")
 	} else {
 		io.WriteString(w, " NOT NULL")

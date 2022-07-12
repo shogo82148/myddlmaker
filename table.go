@@ -2,6 +2,7 @@ package myddlmaker
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -18,9 +19,9 @@ var (
 )
 
 type table struct {
-	name       string
-	columns    []*column
-	primaryKey *PrimaryKey
+	Name       string
+	Columns    []*column
+	PrimaryKey *PrimaryKey
 }
 
 func newTable(s any) (*table, error) {
@@ -31,33 +32,37 @@ func newTable(s any) (*table, error) {
 	}
 
 	var tbl table
-	tbl.name = camelToSnake(typ.Name())
+	tbl.Name = camelToSnake(typ.Name())
 
 	fields := reflect.VisibleFields(typ)
-	tbl.columns = make([]*column, 0, len(fields))
+	tbl.Columns = make([]*column, 0, len(fields))
 	for _, f := range fields {
 		col, err := newColumn(f)
 		if err != nil {
-			return nil, err
+			if !errors.Is(err, errSkipColumn) {
+				return nil, err
+			}
+		} else {
+			tbl.Columns = append(tbl.Columns, col)
 		}
-		tbl.columns = append(tbl.columns, col)
 	}
 
 	if pk, ok := val.Interface().(primaryKey); ok {
-		tbl.primaryKey = pk.PrimaryKey()
+		tbl.PrimaryKey = pk.PrimaryKey()
 	}
 
 	return &tbl, nil
 }
 
 type column struct {
-	name     string
-	typ      string
-	size     int
-	unsigned bool
-	null     bool
+	Name     string
+	Type     string
+	Size     int
+	Unsigned bool
+	Null     bool
 }
 
+var errSkipColumn = errors.New("myddlmaker: skip this column")
 var timeType = reflect.TypeOf(time.Time{})
 var nullTimeType = reflect.TypeOf(sql.NullTime{})
 var nullStringType = reflect.TypeOf(sql.NullString{})
@@ -74,58 +79,58 @@ func newColumn(f reflect.StructField) (*column, error) {
 	typ := indirect(f.Type)
 	switch typ.Kind() {
 	case reflect.Bool:
-		col.typ = "TINYINT"
-		col.size = 1
+		col.Type = "TINYINT"
+		col.Size = 1
 	case reflect.Int8:
-		col.typ = "TINYINT"
+		col.Type = "TINYINT"
 	case reflect.Int16:
-		col.typ = "SMALLINT"
+		col.Type = "SMALLINT"
 	case reflect.Int32:
-		col.typ = "INTEGER"
+		col.Type = "INTEGER"
 	case reflect.Int64:
-		col.typ = "BIGINT"
+		col.Type = "BIGINT"
 	case reflect.Uint8:
-		col.typ = "TINYINT"
-		col.unsigned = true
+		col.Type = "TINYINT"
+		col.Unsigned = true
 	case reflect.Uint16:
-		col.typ = "SMALLINT"
-		col.unsigned = true
+		col.Type = "SMALLINT"
+		col.Unsigned = true
 	case reflect.Uint32:
-		col.typ = "INTEGER"
-		col.unsigned = true
+		col.Type = "INTEGER"
+		col.Unsigned = true
 	case reflect.Uint64:
-		col.typ = "BIGINT"
-		col.unsigned = true
+		col.Type = "BIGINT"
+		col.Unsigned = true
 	case reflect.Float32:
-		col.typ = "FLOAT"
+		col.Type = "FLOAT"
 	case reflect.Float64:
-		col.typ = "DOUBLE"
+		col.Type = "DOUBLE"
 	case reflect.String:
-		col.typ = "VARCHAR"
-		col.size = 191
+		col.Type = "VARCHAR"
+		col.Size = 191
 	case reflect.Struct:
 		switch typ {
 		case timeType:
-			col.typ = "DATETIME"
+			col.Type = "DATETIME"
 		case nullTimeType:
-			col.typ = "DATETIME"
+			col.Type = "DATETIME"
 		case nullStringType:
-			col.typ = "VARCHAR"
-			col.size = 191
+			col.Type = "VARCHAR"
+			col.Size = 191
 		case nullBoolType:
-			col.typ = "TINYINT"
-			col.size = 1
+			col.Type = "TINYINT"
+			col.Size = 1
 		case nullByteType:
-			col.typ = "VARBINARY"
-			col.size = 767
+			col.Type = "VARBINARY"
+			col.Size = 767
 		case nullFloat64Type:
-			col.typ = "DOUBLE"
+			col.Type = "DOUBLE"
 		case nullInt16Type:
-			col.typ = "SMALLINT"
+			col.Type = "SMALLINT"
 		case nullInt32Type:
-			col.typ = "INTEGER"
+			col.Type = "INTEGER"
 		case nullInt64Type:
-			col.typ = "BIGINT"
+			col.Type = "BIGINT"
 		}
 	}
 
@@ -133,20 +138,26 @@ func newColumn(f reflect.StructField) (*column, error) {
 	name, remain, _ := strings.Cut(f.Tag.Get(StructTagName), ",")
 	if name == "" {
 		name = camelToSnake(f.Name)
+	} else if name == "-" {
+		return nil, errSkipColumn
 	}
-	col.name = name
+	col.Name = name
 	for len(remain) > 0 {
 		var opt string
 		opt, remain, _ = strings.Cut(remain, ",")
 		switch {
 		case opt == "null":
-			col.null = true
+			col.Null = true
 		case strings.HasPrefix(opt, "size="):
 			v, err := strconv.ParseInt(opt[len("size="):], 10, 0)
 			if err != nil {
 				return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
 			}
-			col.size = int(v)
+			col.Size = int(v)
+		case strings.HasPrefix(opt, "type="):
+			col.Type = opt[len("type="):]
+			col.Unsigned = false
+			col.Size = 0
 		}
 	}
 
