@@ -87,6 +87,7 @@ func (m *Maker) generateTable(w io.Writer, table *table) {
 	for _, col := range table.Columns {
 		m.generateColumn(w, col)
 	}
+	m.generateIndex(w, table)
 	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.PrimaryKey.columns), ", "))
 	fmt.Fprintf(w, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
 }
@@ -108,6 +109,21 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 		io.WriteString(w, " NOT NULL")
 	}
 	io.WriteString(w, ",\n")
+}
+
+func (m *Maker) generateIndex(w io.Writer, table *table) {
+	for _, idx := range table.Indexes {
+		switch idx := idx.(type) {
+		case *index:
+			io.WriteString(w, "    INDEX ")
+			io.WriteString(w, quote(idx.Name))
+			io.WriteString(w, " (")
+			io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+			io.WriteString(w, "),\n")
+		default:
+			panic("must not reach")
+		}
+	}
 }
 
 func quote(s string) string {

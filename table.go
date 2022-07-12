@@ -22,6 +22,7 @@ type table struct {
 	Name       string
 	Columns    []*column
 	PrimaryKey *PrimaryKey
+	Indexes    []Index
 }
 
 func newTable(s any) (*table, error) {
@@ -47,8 +48,12 @@ func newTable(s any) (*table, error) {
 		}
 	}
 
-	if pk, ok := val.Interface().(primaryKey); ok {
+	iface := val.Interface()
+	if pk, ok := iface.(primaryKey); ok {
 		tbl.PrimaryKey = pk.PrimaryKey()
+	}
+	if idx, ok := iface.(indexes); ok {
+		tbl.Indexes = idx.Indexes()
 	}
 
 	return &tbl, nil
