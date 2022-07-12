@@ -102,6 +102,11 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 	if col.unsigned {
 		io.WriteString(w, " unsigned")
 	}
+	if col.null {
+		io.WriteString(w, " NULL")
+	} else {
+		io.WriteString(w, " NOT NULL")
+	}
 	io.WriteString(w, ",\n")
 }
 
