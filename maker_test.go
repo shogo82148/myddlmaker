@@ -3,10 +3,13 @@ package myddlmaker
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/go-cmp/cmp"
@@ -36,6 +39,9 @@ func (*Foo2) Indexes() []Index {
 }
 
 func testMaker(t *testing.T, structs []any, ddl string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	m, err := New(&Config{})
 	if err != nil {
 		t.Fatalf("failed to initialize Maker: %v", err)
@@ -61,11 +67,30 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 		return
 	}
 
-	// connect to the MySQL Server
+	// create a new database
 	cfg := mysql.NewConfig()
 	cfg.User = user
 	cfg.Passwd = pass
 	cfg.Addr = addr
+	db0, err := sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer db0.Close()
+
+	var buf2 [4]byte
+	_, err = rand.Read(buf2[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	dbName := fmt.Sprintf("myddlmaker_%x", buf2[:])
+	_, err = db0.ExecContext(ctx, "CREATE DATABASE "+dbName)
+	if err != nil {
+		t.Fatalf("failed to create database %q: %v", dbName, err)
+	}
+	defer db0.ExecContext(ctx, "DROP DATABASE"+dbName)
+
+	cfg.DBName = dbName
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		t.Fatalf("failed to open db: %v", err)
@@ -79,7 +104,7 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 		if q == "" {
 			continue
 		}
-		_, err := db.ExecContext(context.Background(), q)
+		_, err := db.ExecContext(ctx, q)
 		if err != nil {
 			t.Errorf("failed to execute %q: %v", q, err)
 		}
