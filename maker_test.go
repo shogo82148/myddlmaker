@@ -2,8 +2,13 @@ package myddlmaker
 
 import (
 	"bytes"
+	"context"
+	"database/sql"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -33,19 +38,51 @@ func (*Foo2) Indexes() []Index {
 func testMaker(t *testing.T, structs []any, ddl string) {
 	m, err := New(&Config{})
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to initialize Maker: %v", err)
 	}
 
 	m.AddStructs(structs...)
 
 	var buf bytes.Buffer
 	if err := m.Generate(&buf); err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to generate ddl: %v", err)
 	}
 
 	got := buf.String()
 	if diff := cmp.Diff(ddl, got); diff != "" {
 		t.Errorf("ddl is not match: (-want/+got)\n%s", diff)
+	}
+
+	// check the ddl syntax with MySQL Server
+	user := os.Getenv("MYSQL_TEST_USER")
+	pass := os.Getenv("MYSQL_TEST_PASS")
+	addr := os.Getenv("MYSQL_TEST_ADDR")
+	if user == "" || pass == "" || addr == "" {
+		return
+	}
+
+	// connect to the MySQL Server
+	cfg := mysql.NewConfig()
+	cfg.User = user
+	cfg.Passwd = pass
+	cfg.Addr = addr
+	db, err := sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer db.Close()
+
+	// check the ddl syntax
+	lines := strings.Split(got, ";\n")
+	for _, q := range lines {
+		q := strings.TrimSpace(q)
+		if q == "" {
+			continue
+		}
+		_, err := db.ExecContext(context.Background(), q)
+		if err != nil {
+			t.Errorf("failed to execute %q: %v", q, err)
+		}
 	}
 }
 
