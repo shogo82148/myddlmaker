@@ -55,6 +55,7 @@ type column struct {
 	typ      string
 	size     int
 	unsigned bool
+	null     bool
 }
 
 var timeType = reflect.TypeOf(time.Time{})
@@ -138,6 +139,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 		var opt string
 		opt, remain, _ = strings.Cut(remain, ",")
 		switch {
+		case opt == "null":
+			col.null = true
 		case strings.HasPrefix(opt, "size="):
 			v, err := strconv.ParseInt(opt[len("size="):], 10, 0)
 			if err != nil {
