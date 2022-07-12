@@ -67,7 +67,7 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 		return
 	}
 
-	// create a new database
+	// connect to the server
 	cfg := mysql.NewConfig()
 	cfg.User = user
 	cfg.Passwd = pass
@@ -78,6 +78,7 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	}
 	defer db0.Close()
 
+	// create a new database
 	var buf2 [4]byte
 	_, err = rand.Read(buf2[:])
 	if err != nil {
@@ -97,6 +98,12 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	}
 	defer db.Close()
 
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		t.Fatalf("failed to get a connection: %v", err)
+	}
+	defer conn.Close()
+
 	// check the ddl syntax
 	lines := strings.Split(got, ";\n")
 	for _, q := range lines {
@@ -104,7 +111,7 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 		if q == "" {
 			continue
 		}
-		_, err := db.ExecContext(ctx, q)
+		_, err := conn.ExecContext(ctx, q)
 		if err != nil {
 			t.Errorf("failed to execute %q: %v", q, err)
 		}
