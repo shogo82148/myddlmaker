@@ -2,8 +2,16 @@ package myddlmaker
 
 import (
 	"bytes"
+	"context"
+	"crypto/rand"
+	"database/sql"
+	"fmt"
+	"os"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -31,21 +39,82 @@ func (*Foo2) Indexes() []Index {
 }
 
 func testMaker(t *testing.T, structs []any, ddl string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	m, err := New(&Config{})
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to initialize Maker: %v", err)
 	}
 
 	m.AddStructs(structs...)
 
 	var buf bytes.Buffer
 	if err := m.Generate(&buf); err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to generate ddl: %v", err)
 	}
 
 	got := buf.String()
 	if diff := cmp.Diff(ddl, got); diff != "" {
 		t.Errorf("ddl is not match: (-want/+got)\n%s", diff)
+	}
+
+	// check the ddl syntax with MySQL Server
+	user := os.Getenv("MYSQL_TEST_USER")
+	pass := os.Getenv("MYSQL_TEST_PASS")
+	addr := os.Getenv("MYSQL_TEST_ADDR")
+	if user == "" || pass == "" || addr == "" {
+		return
+	}
+
+	// connect to the server
+	cfg := mysql.NewConfig()
+	cfg.User = user
+	cfg.Passwd = pass
+	cfg.Addr = addr
+	db0, err := sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer db0.Close()
+
+	// create a new database
+	var buf2 [4]byte
+	_, err = rand.Read(buf2[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	dbName := fmt.Sprintf("myddlmaker_%x", buf2[:])
+	_, err = db0.ExecContext(ctx, "CREATE DATABASE "+dbName)
+	if err != nil {
+		t.Fatalf("failed to create database %q: %v", dbName, err)
+	}
+	defer db0.ExecContext(ctx, "DROP DATABASE"+dbName)
+
+	cfg.DBName = dbName
+	db, err := sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		t.Fatalf("failed to open db: %v", err)
+	}
+	defer db.Close()
+
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		t.Fatalf("failed to get a connection: %v", err)
+	}
+	defer conn.Close()
+
+	// check the ddl syntax
+	lines := strings.Split(got, ";\n")
+	for _, q := range lines {
+		q := strings.TrimSpace(q)
+		if q == "" {
+			continue
+		}
+		_, err := conn.ExecContext(ctx, q)
+		if err != nil {
+			t.Errorf("failed to execute %q: %v", q, err)
+		}
 	}
 }
 
