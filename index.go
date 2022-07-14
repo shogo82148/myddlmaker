@@ -22,3 +22,17 @@ func NewIndex(name string, col ...string) Index {
 		Columns: col,
 	}
 }
+
+type uniqueIndex struct {
+	Name    string
+	Columns []string
+}
+
+func (*uniqueIndex) myddlmaker() {}
+
+func NewUniqueIndex(name string, col ...string) Index {
+	return &uniqueIndex{
+		Name:    name,
+		Columns: col,
+	}
+}
