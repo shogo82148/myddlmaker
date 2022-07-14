@@ -19,10 +19,11 @@ var (
 )
 
 type table struct {
-	Name       string
-	Columns    []*column
-	PrimaryKey *PrimaryKey
-	Indexes    []Index
+	Name          string
+	Columns       []*column
+	PrimaryKey    *PrimaryKey
+	Indexes       []*Index
+	UniqueIndexes []*UniqueIndex
 }
 
 func newTable(s any) (*table, error) {
@@ -54,6 +55,9 @@ func newTable(s any) (*table, error) {
 	}
 	if idx, ok := iface.(indexes); ok {
 		tbl.Indexes = idx.Indexes()
+	}
+	if idx, ok := iface.(uniqueIndexes); ok {
+		tbl.UniqueIndexes = idx.UniqueIndexes()
 	}
 
 	return &tbl, nil

@@ -32,8 +32,8 @@ func (*Foo2) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
-func (*Foo2) Indexes() []Index {
-	return []Index{
+func (*Foo2) Indexes() []*Index {
+	return []*Index{
 		NewIndex("idx_name", "name"),
 	}
 }
@@ -47,8 +47,8 @@ func (*Foo3) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
-func (*Foo3) Indexes() []Index {
-	return []Index{
+func (*Foo3) UniqueIndexes() []*UniqueIndex {
+	return []*UniqueIndex{
 		NewUniqueIndex("idx_name", "name"),
 	}
 }

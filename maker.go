@@ -113,22 +113,19 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 
 func (m *Maker) generateIndex(w io.Writer, table *table) {
 	for _, idx := range table.Indexes {
-		switch idx := idx.(type) {
-		case *index:
-			io.WriteString(w, "    INDEX ")
-			io.WriteString(w, quote(idx.Name))
-			io.WriteString(w, " (")
-			io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
-			io.WriteString(w, "),\n")
-		case *uniqueIndex:
-			io.WriteString(w, "    UNIQUE ")
-			io.WriteString(w, quote(idx.Name))
-			io.WriteString(w, " (")
-			io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
-			io.WriteString(w, "),\n")
-		default:
-			panic("must not reach")
-		}
+		io.WriteString(w, "    INDEX ")
+		io.WriteString(w, quote(idx.Name))
+		io.WriteString(w, " (")
+		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+		io.WriteString(w, "),\n")
+	}
+
+	for _, idx := range table.UniqueIndexes {
+		io.WriteString(w, "    UNIQUE ")
+		io.WriteString(w, quote(idx.Name))
+		io.WriteString(w, " (")
+		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+		io.WriteString(w, "),\n")
 	}
 }
 
