@@ -13,36 +13,36 @@ type foreignKeys interface {
 }
 
 type Index struct {
-	Name    string
-	Columns []string
+	name    string
+	columns []string
 }
 
 func NewIndex(name string, col ...string) *Index {
 	return &Index{
-		Name:    name,
-		Columns: col,
+		name:    name,
+		columns: col,
 	}
 }
 
 type UniqueIndex struct {
-	Name    string
-	Columns []string
+	name    string
+	columns []string
 }
 
 func NewUniqueIndex(name string, col ...string) *UniqueIndex {
 	return &UniqueIndex{
-		Name:    name,
-		Columns: col,
+		name:    name,
+		columns: col,
 	}
 }
 
 type ForeignKey struct {
-	Name        string
-	Columns     []string
-	Table       string
-	References  []string
-	OnUpdateOpt ForeignKeyOption
-	OnDeleteOpt ForeignKeyOption
+	name       string
+	columns    []string
+	table      string
+	references []string
+	onUpdate   ForeignKeyOption
+	onDelete   ForeignKeyOption
 }
 
 type ForeignKeyOption string
@@ -72,21 +72,21 @@ func NewForeignKey(name string, columns []string, table string, references []str
 		panic("columns and references must have same length")
 	}
 	return &ForeignKey{
-		Name:       name,
-		Columns:    columns,
-		Table:      table,
-		References: references,
+		name:       name,
+		columns:    columns,
+		table:      table,
+		references: references,
 	}
 }
 
 func (fk *ForeignKey) OnUpdate(opt ForeignKeyOption) *ForeignKey {
 	key := *fk // shallow copy
-	key.OnUpdateOpt = opt
+	key.onUpdate = opt
 	return &key
 }
 
 func (fk *ForeignKey) OnDelete(opt ForeignKeyOption) *ForeignKey {
 	key := *fk // shallow copy
-	key.OnDeleteOpt = opt
+	key.onDelete = opt
 	return &key
 }

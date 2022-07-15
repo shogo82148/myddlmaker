@@ -82,28 +82,28 @@ func (m *Maker) parse() error {
 }
 
 func (m *Maker) generateTable(w io.Writer, table *table) {
-	fmt.Fprintf(w, "DROP TABLE IF EXISTS %s;\n\n", quote(table.Name))
-	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.Name))
-	for _, col := range table.Columns {
+	fmt.Fprintf(w, "DROP TABLE IF EXISTS %s;\n\n", quote(table.name))
+	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.name))
+	for _, col := range table.columns {
 		m.generateColumn(w, col)
 	}
 	m.generateIndex(w, table)
-	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.PrimaryKey.columns), ", "))
+	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
 	fmt.Fprintf(w, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
 }
 
 func (m *Maker) generateColumn(w io.Writer, col *column) {
 	io.WriteString(w, "    ")
-	io.WriteString(w, quote(col.Name))
+	io.WriteString(w, quote(col.name))
 	io.WriteString(w, " ")
-	io.WriteString(w, col.Type)
-	if col.Size != 0 {
-		fmt.Fprintf(w, "(%d)", col.Size)
+	io.WriteString(w, col.typ)
+	if col.size != 0 {
+		fmt.Fprintf(w, "(%d)", col.size)
 	}
-	if col.Unsigned {
+	if col.unsigned {
 		io.WriteString(w, " unsigned")
 	}
-	if col.Null {
+	if col.null {
 		io.WriteString(w, " NULL")
 	} else {
 		io.WriteString(w, " NOT NULL")
@@ -112,39 +112,39 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 }
 
 func (m *Maker) generateIndex(w io.Writer, table *table) {
-	for _, idx := range table.Indexes {
+	for _, idx := range table.indexes {
 		io.WriteString(w, "    INDEX ")
-		io.WriteString(w, quote(idx.Name))
+		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
 		io.WriteString(w, "),\n")
 	}
 
-	for _, idx := range table.UniqueIndexes {
+	for _, idx := range table.uniqueIndexes {
 		io.WriteString(w, "    UNIQUE ")
-		io.WriteString(w, quote(idx.Name))
+		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
 		io.WriteString(w, "),\n")
 	}
 
-	for _, idx := range table.ForeignKeys {
+	for _, idx := range table.foreignKeys {
 		io.WriteString(w, "    CONSTRAINT ")
-		io.WriteString(w, quote(idx.Name))
+		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " FOREIGN KEY (")
-		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
 		io.WriteString(w, ") REFERENCES ")
-		io.WriteString(w, quote(idx.Table))
+		io.WriteString(w, quote(idx.table))
 		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.References), ", "))
+		io.WriteString(w, strings.Join(quoteAll(idx.references), ", "))
 		io.WriteString(w, ")")
-		if idx.OnUpdateOpt != "" {
+		if idx.onUpdate != "" {
 			io.WriteString(w, " ON UPDATE ")
-			io.WriteString(w, string(idx.OnUpdateOpt))
+			io.WriteString(w, string(idx.onUpdate))
 		}
-		if idx.OnDeleteOpt != "" {
+		if idx.onDelete != "" {
 			io.WriteString(w, " ON DELETE ")
-			io.WriteString(w, string(idx.OnDeleteOpt))
+			io.WriteString(w, string(idx.onDelete))
 		}
 		io.WriteString(w, ",\n")
 	}
