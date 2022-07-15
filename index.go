@@ -15,6 +15,7 @@ type foreignKeys interface {
 type Index struct {
 	name    string
 	columns []string
+	comment string
 }
 
 func NewIndex(name string, col ...string) *Index {
@@ -24,9 +25,16 @@ func NewIndex(name string, col ...string) *Index {
 	}
 }
 
+func (idx *Index) Comment(comment string) *Index {
+	tmp := *idx // shallow copy
+	tmp.comment = comment
+	return &tmp
+}
+
 type UniqueIndex struct {
 	name    string
 	columns []string
+	comment string
 }
 
 func NewUniqueIndex(name string, col ...string) *UniqueIndex {
@@ -34,6 +42,12 @@ func NewUniqueIndex(name string, col ...string) *UniqueIndex {
 		name:    name,
 		columns: col,
 	}
+}
+
+func (idx *UniqueIndex) Comment(comment string) *UniqueIndex {
+	tmp := *idx // shallow copy
+	tmp.comment = comment
+	return &tmp
 }
 
 type ForeignKey struct {

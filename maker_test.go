@@ -83,6 +83,30 @@ func (*Foo5) ForeignKeys() []*ForeignKey {
 	}
 }
 
+type Foo6 struct {
+	ID    int32
+	Name  string
+	Email string
+}
+
+func (*Foo6) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo6) Indexes() []*Index {
+	return []*Index{
+		// Indexes with comments.
+		NewIndex("idx_name", "name").Comment("an index\n\twith 'comment'"),
+	}
+}
+
+func (*Foo6) UniqueIndexes() []*UniqueIndex {
+	return []*UniqueIndex{
+		// Indexes with comments.
+		NewUniqueIndex("uniq_email", "email").Comment("a unique index\n\twith 'comment'"),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -221,4 +245,17 @@ func TestMaker(t *testing.T) {
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
 		"SET foreign_key_checks=1;\n")
+
+	testMaker(t, []any{&Foo6{}}, "SET foreign_key_checks=0;\n"+
+		"DROP TABLE IF EXISTS `foo6`;\n\n"+
+		"CREATE TABLE `foo6` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `name` VARCHAR(191) NOT NULL,\n"+
+		"    `email` VARCHAR(191) NOT NULL,\n"+
+		"    INDEX `idx_name` (`name`) COMMENT 'an index\\n\\twith \\'comment\\'',\n"+
+		"    UNIQUE `uniq_email` (`email`) COMMENT 'a unique index\\n\\twith \\'comment\\'',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		"SET foreign_key_checks=1;\n")
+
 }

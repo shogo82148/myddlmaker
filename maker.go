@@ -117,7 +117,12 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " (")
 		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
-		io.WriteString(w, "),\n")
+		io.WriteString(w, ")")
+		if idx.comment != "" {
+			io.WriteString(w, " COMMENT ")
+			io.WriteString(w, stringQuote(idx.comment))
+		}
+		io.WriteString(w, ",\n")
 	}
 
 	for _, idx := range table.uniqueIndexes {
@@ -125,7 +130,12 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " (")
 		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
-		io.WriteString(w, "),\n")
+		io.WriteString(w, ")")
+		if idx.comment != "" {
+			io.WriteString(w, " COMMENT ")
+			io.WriteString(w, stringQuote(idx.comment))
+		}
+		io.WriteString(w, ",\n")
 	}
 
 	for _, idx := range table.foreignKeys {
@@ -150,10 +160,11 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 	}
 }
 
+// quote quotes s with `s`.
 func quote(s string) string {
 	var buf strings.Builder
-	// Strictly speaking, we need to count the number of backquotes in s.
-	// However, in many cases, s doesn't include backquotes.
+	// Strictly speaking, we need to count the number of back quotes in s.
+	// However, in many cases, s doesn't include back quotes.
 	buf.Grow(len(s) + len("``"))
 
 	buf.WriteByte('`')
@@ -173,6 +184,33 @@ func quoteAll(strings []string) []string {
 		ret[i] = quote(s)
 	}
 	return ret
+}
+
+// escape sequence table
+// https://dev.mysql.com/doc/refman/8.0/en/string-literals.html
+var stringQuoter = strings.NewReplacer(
+	"\x00", `\0`,
+	"'", `\'`,
+	`"`, `\"`,
+	"\b", `\b`,
+	"\n", `\n`,
+	"\r", `\r`,
+	"\t", `\t`,
+	"\x1a", `\Z`,
+	"\\", `\\`,
+)
+
+// stringQuote quotes s with 's'.
+func stringQuote(s string) string {
+	var buf strings.Builder
+	// Strictly speaking, we need to count the number of quotes in s.
+	// However, in many cases, s doesn't include quotes.
+	buf.Grow(len(s) + len("''"))
+
+	buf.WriteByte('\'')
+	stringQuoter.WriteString(&buf, s)
+	buf.WriteByte('\'')
+	return buf.String()
 }
 
 type PrimaryKey struct {
