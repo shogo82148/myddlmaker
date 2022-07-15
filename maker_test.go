@@ -24,7 +24,7 @@ func (*Foo1) PrimaryKey() *PrimaryKey {
 }
 
 type Foo2 struct {
-	ID   int32
+	ID   int32 `ddl:",auto"`
 	Name string
 }
 
@@ -203,7 +203,7 @@ func TestMaker(t *testing.T) {
 	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n"+
 		"DROP TABLE IF EXISTS `foo2_customized`;\n\n"+
 		"CREATE TABLE `foo2_customized` (\n"+
-		"    `id` INTEGER NOT NULL,\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    INDEX `idx_name` (`name`),\n"+
 		"    PRIMARY KEY (`id`)\n"+

@@ -80,6 +80,7 @@ type column struct {
 	name     string
 	typ      string
 	size     int
+	autoIncr bool
 	unsigned bool
 	null     bool
 }
@@ -170,6 +171,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 		switch {
 		case opt == "null":
 			col.null = true
+		case opt == "auto":
+			col.autoIncr = true
 		case strings.HasPrefix(opt, "size="):
 			v, err := strconv.ParseInt(opt[len("size="):], 10, 0)
 			if err != nil {

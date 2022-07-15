@@ -46,6 +46,9 @@ type FooBar struct {
 	NullInt16   sql.NullInt16
 	NullInt32   sql.NullInt32
 	NullInt64   sql.NullInt64
+
+	// Auto Increment
+	Auto int64 `ddl:",auto"`
 }
 
 func TestTable(t *testing.T) {
@@ -76,6 +79,7 @@ func TestTable(t *testing.T) {
 			{name: "null_int16", typ: "SMALLINT"},
 			{name: "null_int32", typ: "INTEGER"},
 			{name: "null_int64", typ: "BIGINT"},
+			{name: "auto", typ: "BIGINT", autoIncr: true},
 		},
 	}
 	got, err := newTable(&FooBar{})
