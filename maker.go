@@ -127,6 +127,18 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
 		io.WriteString(w, "),\n")
 	}
+
+	for _, idx := range table.ForeignKeys {
+		io.WriteString(w, "    CONSTRAINT ")
+		io.WriteString(w, quote(idx.Name))
+		io.WriteString(w, " FOREIGN KEY (")
+		io.WriteString(w, strings.Join(quoteAll(idx.Columns), ", "))
+		io.WriteString(w, ") REFERENCES ")
+		io.WriteString(w, quote(idx.Table))
+		io.WriteString(w, " (")
+		io.WriteString(w, strings.Join(quoteAll(idx.References), ", "))
+		io.WriteString(w, "),\n")
+	}
 }
 
 func quote(s string) string {

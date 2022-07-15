@@ -24,6 +24,7 @@ type table struct {
 	PrimaryKey    *PrimaryKey
 	Indexes       []*Index
 	UniqueIndexes []*UniqueIndex
+	ForeignKeys   []*ForeignKey
 }
 
 func newTable(s any) (*table, error) {
@@ -58,6 +59,9 @@ func newTable(s any) (*table, error) {
 	}
 	if idx, ok := iface.(uniqueIndexes); ok {
 		tbl.UniqueIndexes = idx.UniqueIndexes()
+	}
+	if idx, ok := iface.(foreignKeys); ok {
+		tbl.ForeignKeys = idx.ForeignKeys()
 	}
 
 	return &tbl, nil
