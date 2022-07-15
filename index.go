@@ -37,11 +37,23 @@ func NewUniqueIndex(name string, col ...string) *UniqueIndex {
 }
 
 type ForeignKey struct {
-	Name       string
-	Columns    []string
-	Table      string
-	References []string
+	Name        string
+	Columns     []string
+	Table       string
+	References  []string
+	OnUpdateOpt ForeignKeyOption
+	OnDeleteOpt ForeignKeyOption
 }
+
+type ForeignKeyOption string
+
+const (
+	ForeignKeyOptionCascade    ForeignKeyOption = "CASCADE"
+	ForeignKeyOptionSetNull    ForeignKeyOption = "SET NULL"
+	ForeignKeyOptionRestrict   ForeignKeyOption = "RESTRICT"
+	ForeignKeyOptionNoAction   ForeignKeyOption = "NO ACTION"
+	ForeignKeyOptionSetDefault ForeignKeyOption = "SET DEFAULT"
+)
 
 func NewForeignKey(name string, columns []string, table string, references []string) *ForeignKey {
 	if name == "" {
@@ -65,4 +77,16 @@ func NewForeignKey(name string, columns []string, table string, references []str
 		Table:      table,
 		References: references,
 	}
+}
+
+func (fk *ForeignKey) OnUpdate(opt ForeignKeyOption) *ForeignKey {
+	key := *fk // shallow copy
+	key.OnUpdateOpt = opt
+	return &key
+}
+
+func (fk *ForeignKey) OnDelete(opt ForeignKeyOption) *ForeignKey {
+	key := *fk // shallow copy
+	key.OnDeleteOpt = opt
+	return &key
 }

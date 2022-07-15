@@ -137,7 +137,16 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, quote(idx.Table))
 		io.WriteString(w, " (")
 		io.WriteString(w, strings.Join(quoteAll(idx.References), ", "))
-		io.WriteString(w, "),\n")
+		io.WriteString(w, ")")
+		if idx.OnUpdateOpt != "" {
+			io.WriteString(w, " ON UPDATE ")
+			io.WriteString(w, string(idx.OnUpdateOpt))
+		}
+		if idx.OnDeleteOpt != "" {
+			io.WriteString(w, " ON DELETE ")
+			io.WriteString(w, string(idx.OnDeleteOpt))
+		}
+		io.WriteString(w, ",\n")
 	}
 }
 
