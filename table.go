@@ -18,6 +18,11 @@ var (
 	IgnoreName = "-"
 )
 
+// Table customize the table name.
+type Table interface {
+	Table() string
+}
+
 type table struct {
 	name          string
 	columns       []*column
@@ -30,12 +35,17 @@ type table struct {
 func newTable(s any) (*table, error) {
 	val := reflect.ValueOf(s)
 	typ := indirect(val.Type())
+	iface := val.Interface()
 	if typ.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("myddlmaker: expected struct: %s", typ.Kind())
 	}
 
 	var tbl table
-	tbl.name = camelToSnake(typ.Name())
+	if t, ok := iface.(Table); ok {
+		tbl.name = t.Table()
+	} else {
+		tbl.name = camelToSnake(typ.Name())
+	}
 
 	fields := reflect.VisibleFields(typ)
 	tbl.columns = make([]*column, 0, len(fields))
@@ -50,7 +60,6 @@ func newTable(s any) (*table, error) {
 		}
 	}
 
-	iface := val.Interface()
 	if pk, ok := iface.(primaryKey); ok {
 		tbl.primaryKey = pk.PrimaryKey()
 	}

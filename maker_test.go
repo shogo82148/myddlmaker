@@ -28,6 +28,10 @@ type Foo2 struct {
 	Name string
 }
 
+func (*Foo2) Table() string {
+	return "foo2_customized"
+}
+
 func (*Foo2) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
@@ -197,8 +201,8 @@ func TestMaker(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n"+
-		"DROP TABLE IF EXISTS `foo2`;\n\n"+
-		"CREATE TABLE `foo2` (\n"+
+		"DROP TABLE IF EXISTS `foo2_customized`;\n\n"+
+		"CREATE TABLE `foo2_customized` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    INDEX `idx_name` (`name`),\n"+
