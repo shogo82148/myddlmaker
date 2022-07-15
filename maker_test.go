@@ -68,6 +68,21 @@ func (*Foo4) ForeignKeys() []*ForeignKey {
 	}
 }
 
+type Foo5 struct {
+	ID   int32
+	Name string
+}
+
+func (*Foo5) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo5) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey("fk_foo1", []string{"id"}, "foo1", []string{"id"}).OnUpdate(ForeignKeyOptionCascade).OnDelete(ForeignKeyOptionCascade),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -188,6 +203,21 @@ func TestMaker(t *testing.T) {
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	testMaker(t, []any{&Foo5{}, &Foo1{}}, "SET foreign_key_checks=0;\n"+
+		"DROP TABLE IF EXISTS `foo5`;\n\n"+
+		"CREATE TABLE `foo5` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `name` VARCHAR(191) NOT NULL,\n"+
+		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		"DROP TABLE IF EXISTS `foo1`;\n\n"+
+		"CREATE TABLE `foo1` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
 		"SET foreign_key_checks=1;\n")
