@@ -89,7 +89,17 @@ func (m *Maker) generateTable(w io.Writer, table *table) {
 	}
 	m.generateIndex(w, table)
 	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
-	fmt.Fprintf(w, ") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n")
+
+	fmt.Fprintf(w, ")")
+	if m.config != nil && m.config.DB != nil {
+		if engine := m.config.DB.Engine; engine != "" {
+			fmt.Fprintf(w, " ENGINE = %s", engine)
+		}
+		if charset := m.config.DB.Charset; charset != "" {
+			fmt.Fprintf(w, " DEFAULT CHARACTER SET = %s", charset)
+		}
+	}
+	fmt.Fprintf(w, ";\n\n")
 }
 
 func (m *Maker) generateColumn(w io.Writer, col *column) {
