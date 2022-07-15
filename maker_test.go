@@ -183,10 +183,11 @@ func TestMaker(t *testing.T) {
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		"DROP TABLE IF EXISTS `foo4`;\n\n"+
 		"CREATE TABLE `foo4` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
-		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`)\n"+
+		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
 		"SET foreign_key_checks=1;\n")
