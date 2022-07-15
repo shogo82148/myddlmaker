@@ -115,7 +115,12 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	m, err := New(&Config{})
+	m, err := New(&Config{
+		DB: &DBConfig{
+			Engine:  "InnoDB",
+			Charset: "utf8mb4",
+		},
+	})
 	if err != nil {
 		t.Fatalf("failed to initialize Maker: %v", err)
 	}
@@ -197,7 +202,7 @@ func TestMaker(t *testing.T) {
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n"+
@@ -207,7 +212,7 @@ func TestMaker(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    INDEX `idx_name` (`name`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo3{}}, "SET foreign_key_checks=0;\n"+
@@ -217,7 +222,7 @@ func TestMaker(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    UNIQUE `idx_name` (`name`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo1{}, &Foo4{}}, "SET foreign_key_checks=0;\n"+
@@ -225,14 +230,14 @@ func TestMaker(t *testing.T) {
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"DROP TABLE IF EXISTS `foo4`;\n\n"+
 		"CREATE TABLE `foo4` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo5{}, &Foo1{}}, "SET foreign_key_checks=0;\n"+
@@ -242,12 +247,12 @@ func TestMaker(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo6{}}, "SET foreign_key_checks=0;\n"+
@@ -259,7 +264,7 @@ func TestMaker(t *testing.T) {
 		"    INDEX `idx_name` (`name`) COMMENT 'an index\\n\\twith \\'comment\\'',\n"+
 		"    UNIQUE `uniq_email` (`email`) COMMENT 'a unique index\\n\\twith \\'comment\\'',\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET = 'utf8mb4';\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 }
