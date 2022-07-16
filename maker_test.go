@@ -111,6 +111,15 @@ func (*Foo6) UniqueIndexes() []*UniqueIndex {
 	}
 }
 
+type Foo7 struct {
+	ID   int32
+	Name string `ddl:",default='John Doe'"`
+}
+
+func (*Foo7) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -267,4 +276,12 @@ func TestMaker(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	testMaker(t, []any{&Foo7{}}, "SET foreign_key_checks=0;\n"+
+		"DROP TABLE IF EXISTS `foo7`;\n\n"+
+		"CREATE TABLE `foo7` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `name` VARCHAR(191) NOT NULL DEFAULT 'John Doe',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		"SET foreign_key_checks=1;\n")
 }
