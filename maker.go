@@ -118,6 +118,10 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 	} else {
 		io.WriteString(w, " NOT NULL")
 	}
+	if col.def != "" {
+		io.WriteString(w, " DEFAULT ")
+		io.WriteString(w, col.def)
+	}
 	if col.autoIncr {
 		io.WriteString(w, " AUTO_INCREMENT")
 	}

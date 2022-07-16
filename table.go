@@ -83,6 +83,7 @@ type column struct {
 	autoIncr bool
 	unsigned bool
 	null     bool
+	def      string
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
@@ -183,6 +184,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.typ = opt[len("type="):]
 			col.unsigned = false
 			col.size = 0
+		case strings.HasPrefix(opt, "default="):
+			col.def = opt[len("default="):]
 		}
 	}
 

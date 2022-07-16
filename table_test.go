@@ -49,6 +49,9 @@ type FooBar struct {
 
 	// Auto Increment
 	Auto int64 `ddl:",auto"`
+
+	// Default Value
+	DefaultValue int64 `ddl:",default=123"`
 }
 
 func TestTable(t *testing.T) {
@@ -80,6 +83,7 @@ func TestTable(t *testing.T) {
 			{name: "null_int32", typ: "INTEGER"},
 			{name: "null_int64", typ: "BIGINT"},
 			{name: "auto", typ: "BIGINT", autoIncr: true},
+			{name: "default_value", typ: "BIGINT", def: "123"},
 		},
 	}
 	got, err := newTable(&FooBar{})
