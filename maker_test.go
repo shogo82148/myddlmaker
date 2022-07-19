@@ -120,6 +120,21 @@ func (*Foo7) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo8 struct {
+	ID   int32 `ddl:",auto"`
+	Name string
+}
+
+func (*Foo8) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo8) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_name", "name").Invisible(),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -281,6 +296,17 @@ func TestMaker(t *testing.T) {
 		"CREATE TABLE `foo7` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL DEFAULT 'John Doe',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// invisible index
+	testMaker(t, []any{&Foo8{}}, "SET foreign_key_checks=0;\n"+
+		"DROP TABLE IF EXISTS `foo8`;\n\n"+
+		"CREATE TABLE `foo8` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    `name` VARCHAR(191) NOT NULL,\n"+
+		"    INDEX `idx_name` (`name`) INVISIBLE,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")

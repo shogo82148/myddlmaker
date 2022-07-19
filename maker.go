@@ -135,6 +135,9 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, " (")
 		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
 		io.WriteString(w, ")")
+		if idx.invisible {
+			io.WriteString(w, " INVISIBLE")
+		}
 		if idx.comment != "" {
 			io.WriteString(w, " COMMENT ")
 			io.WriteString(w, stringQuote(idx.comment))
@@ -148,6 +151,9 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, " (")
 		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
 		io.WriteString(w, ")")
+		if idx.invisible {
+			io.WriteString(w, " INVISIBLE")
+		}
 		if idx.comment != "" {
 			io.WriteString(w, " COMMENT ")
 			io.WriteString(w, stringQuote(idx.comment))
