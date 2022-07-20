@@ -101,6 +101,12 @@ type column struct {
 
 	// def is the default value of the column.
 	def string
+
+	// charset is character set
+	charset string
+
+	// collate is collation name
+	collate string
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
@@ -200,23 +206,31 @@ func newColumn(f reflect.StructField) (*column, error) {
 	for len(remain) > 0 {
 		var opt string
 		opt, remain, _ = strings.Cut(remain, ",")
-		switch {
-		case opt == "null":
+		switch opt {
+		case "null":
 			col.null = true
-		case opt == "auto":
+		case "auto":
 			col.autoIncr = true
-		case strings.HasPrefix(opt, "size="):
-			v, err := strconv.ParseInt(opt[len("size="):], 10, 0)
-			if err != nil {
-				return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
+		default:
+			name, val, _ := strings.Cut(opt, "=")
+			switch name {
+			case "size":
+				v, err := strconv.ParseInt(val, 10, 0)
+				if err != nil {
+					return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
+				}
+				col.size = int(v)
+			case "type":
+				col.typ = val
+				col.unsigned = false
+				col.size = 0
+			case "default":
+				col.def = val
+			case "charset":
+				col.charset = val
+			case "collate":
+				col.collate = val
 			}
-			col.size = int(v)
-		case strings.HasPrefix(opt, "type="):
-			col.typ = opt[len("type="):]
-			col.unsigned = false
-			col.size = 0
-		case strings.HasPrefix(opt, "default="):
-			col.def = opt[len("default="):]
 		}
 	}
 
