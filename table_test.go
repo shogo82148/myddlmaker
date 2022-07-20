@@ -2,6 +2,7 @@ package myddlmaker
 
 import (
 	"database/sql"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -23,6 +24,11 @@ type FooBar struct {
 	Uint64 uint64
 	String string
 	Bool   bool
+
+	// binary types
+	Bytes     []byte
+	ByteArray [4]byte
+	JSONValue json.RawMessage
 
 	// custom type
 	MyInt      myInt
@@ -69,6 +75,9 @@ func TestTable(t *testing.T) {
 			{name: "uint64", rawName: "Uint64", typ: "BIGINT", unsigned: true},
 			{name: "string", rawName: "String", typ: "VARCHAR", size: 191},
 			{name: "bool", rawName: "Bool", typ: "TINYINT", size: 1},
+			{name: "bytes", rawName: "Bytes", typ: "VARBINARY", size: 767},
+			{name: "byte_array", rawName: "ByteArray", typ: "BINARY", size: 4},
+			{name: "json_value", rawName: "JSONValue", typ: "JSON"},
 			{name: "my_int", rawName: "MyInt", typ: "BIGINT"},
 			{name: "custom_type", rawName: "CustomType", typ: "TIMESTAMP"},
 			{name: "p_int8", rawName: "PInt8", typ: "TINYINT"},
