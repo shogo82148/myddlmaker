@@ -137,6 +137,10 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 		io.WriteString(w, " DEFAULT ")
 		io.WriteString(w, col.def)
 	}
+	if col.invisible {
+		// https://dev.mysql.com/doc/refman/8.0/en/invisible-columns.html
+		io.WriteString(w, " INVISIBLE")
+	}
 	if col.autoIncr {
 		io.WriteString(w, " AUTO_INCREMENT")
 	}

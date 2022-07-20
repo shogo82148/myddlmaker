@@ -96,6 +96,10 @@ type column struct {
 
 	unsigned bool
 
+	// invisible marks invisible columns.
+	// https://dev.mysql.com/doc/refman/8.0/en/invisible-columns.html
+	invisible bool
+
 	// null enables to accept NULL values.
 	null bool
 
@@ -214,6 +218,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.null = true
 		case "auto":
 			col.autoIncr = true
+		case "invisible":
+			col.invisible = true
 		default:
 			name, val, _ := strings.Cut(opt, "=")
 			switch name {
