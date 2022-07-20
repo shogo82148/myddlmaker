@@ -303,6 +303,7 @@ func (m *Maker) generateGoHeader(w io.Writer) {
 func (m *Maker) generateGoTable(w io.Writer, table *table) {
 	m.generateGoTableInsert(w, table)
 	m.generateGoTableSelect(w, table)
+	m.generateGoTableUpdate(w, table)
 }
 
 func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
@@ -388,5 +389,40 @@ func (m *Maker) generateGoTableSelect(w io.Writer, table *table) {
 	fmt.Fprintf(w, "row := queryer.QueryRowContext(ctx, %q, %s)\n", sqlSelect, strings.Join(params, ", "))
 	fmt.Fprintf(w, "if err := row.Scan(%s); err != nil {\n return nil, err \n}\n", strings.Join(goFields, ", "))
 	fmt.Fprintf(w, "return &v, nil\n")
+	fmt.Fprintf(w, "}\n\n")
+}
+
+func (m *Maker) generateGoTableUpdate(w io.Writer, table *table) {
+	setFields := make([]string, 0, len(table.columns))
+	goFields := make([]string, 0, len(table.columns))
+	params := make([]string, 0, len(table.primaryKey.columns))
+	conditions := make([]string, 0, len(table.primaryKey.columns))
+
+LOOP:
+	for _, c := range table.columns {
+		for _, key := range table.primaryKey.columns {
+			if key == c.name {
+				params = append(params, fmt.Sprintf("value.%s", c.rawName))
+				conditions = append(conditions, fmt.Sprintf("%s = ?", quote(c.name)))
+				continue LOOP
+			}
+		}
+		setFields = append(setFields, fmt.Sprintf("%s = ?", quote(c.name)))
+		goFields = append(goFields, "value."+c.rawName)
+	}
+
+	update := fmt.Sprintf(
+		"UPDATE %s SET %s WHERE %s",
+		quote(table.name),
+		strings.Join(setFields, ", "),
+		strings.Join(conditions, " AND "),
+	)
+	fmt.Fprintf(w, "func Update%[1]s(ctx context.Context, execer execer, value *%[1]s) error {\n", table.rawName)
+	if len(setFields) != 0 {
+		fmt.Fprintf(w, "_, err := execer.ExecContext(ctx, %q, %s, %s)\n", update, strings.Join(goFields, ", "), strings.Join(params, ", "))
+		fmt.Fprintf(w, "return err\n")
+	} else {
+		fmt.Fprintf(w, "return nil\n")
+	}
 	fmt.Fprintf(w, "}\n\n")
 }
