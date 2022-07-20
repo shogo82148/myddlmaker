@@ -118,3 +118,34 @@ func (fk *ForeignKey) OnDelete(opt ForeignKeyOption) *ForeignKey {
 	key.onDelete = opt
 	return &key
 }
+
+type fullTextIndexes interface {
+	FullTextIndexes() []*FullTextIndex
+}
+
+// https://dev.mysql.com/doc/refman/8.0/en/innodb-fulltext-index.html
+type FullTextIndex struct {
+	name    string
+	column  string
+	comment string
+	parser  string
+}
+
+func NewFullTextIndex(name string, column string) *FullTextIndex {
+	return &FullTextIndex{
+		name:   name,
+		column: column,
+	}
+}
+
+func (idx *FullTextIndex) Comment(comment string) *FullTextIndex {
+	tmp := *idx // shallow copy
+	tmp.comment = comment
+	return &tmp
+}
+
+func (idx *FullTextIndex) WithParser(parser string) *FullTextIndex {
+	tmp := *idx // shallow copy
+	tmp.parser = parser
+	return &tmp
+}

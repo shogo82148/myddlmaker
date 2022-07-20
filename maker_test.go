@@ -144,6 +144,21 @@ func (*Foo9) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo10 struct {
+	ID   int32 `ddl:",auto"`
+	Text string
+}
+
+func (*Foo10) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo10) FullTextIndexes() []*FullTextIndex {
+	return []*FullTextIndex{
+		NewFullTextIndex("idx_text", "text").WithParser("ngram").Comment("FULLTEXT INDEX"),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -351,6 +366,17 @@ func TestMaker_Generate(t *testing.T) {
 		"CREATE TABLE `foo9` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `name` VARCHAR(191) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// FULLTEXT INDEX
+	testMaker(t, []any{&Foo10{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo10`;\n\n"+
+		"CREATE TABLE `foo10` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    `text` VARCHAR(191) NOT NULL,\n"+
+		"    FULLTEXT INDEX `idx_text` (`text`) WITH PARSER ngram COMMENT 'FULLTEXT INDEX',\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
