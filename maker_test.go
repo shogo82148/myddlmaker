@@ -25,7 +25,7 @@ func (*Foo1) PrimaryKey() *PrimaryKey {
 
 type Foo2 struct {
 	ID   int32  `ddl:",auto"`
-	Name string `ddl:",comment='コメント'"`
+	Name string `ddl:",comment='コメント',invisible"`
 }
 
 func (*Foo2) Table() string {
@@ -267,7 +267,7 @@ func TestMaker_Generate(t *testing.T) {
 		"DROP TABLE IF EXISTS `foo2_customized`;\n\n"+
 		"CREATE TABLE `foo2_customized` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
-		"    `name` VARCHAR(191) NOT NULL COMMENT '\\'コメント\\'',\n"+
+		"    `name` VARCHAR(191) NOT NULL INVISIBLE COMMENT '\\'コメント\\'',\n"+
 		"    INDEX `idx_name` (`name`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
