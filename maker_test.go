@@ -325,11 +325,30 @@ type execer interface {
 }
 
 func InsertFoo1(ctx context.Context, execer execer, values ...*Foo1) error {
-	for _, v := range values {
-		_, err := execer.ExecContext(ctx, "INSERT INTO `+"`"+`foo1`+"`"+` (`+"`"+`id`+"`"+`) VALUES (?)", v.ID)
+	const q = "INSERT INTO `+"`"+`foo1`+"`"+` (`+"`"+`id`+"`"+`) VALUES (?)" +
+		", (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)"
+	const fieldCount = 1
+	const maxStructCount = 32
+	count := len(values)
+	if count > maxStructCount {
+		count = maxStructCount
+	}
+	args = make([]any, 0, count*fieldCount)
+	for len(values) > 0 {
+		i := len(values)
+		if i > maxStructCount {
+			i = maxStructCount
+		}
+		vals, rest := values[:i], values[i:]
+		args = args[:0]
+		for _, v := range vals {
+			args = append(args, v.ID)
+		}
+		_, err := execer.ExecContext(ctx, q[:i*5+31], args...)
 		if err != nil {
 			return err
 		}
+		values = rest
 	}
 	return nil
 }

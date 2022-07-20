@@ -295,6 +295,10 @@ func (m *Maker) generateGoHeader(w io.Writer) {
 }
 
 func (m *Maker) generateGoTable(w io.Writer, table *table) {
+	// https://stackoverflow.com/questions/18100782/import-of-50k-records-in-mysql-gives-general-error-1390-prepared-statement-con
+	const maxPlaceholderCount = 65535
+	const maxMaxStructCount = 32
+
 	fmt.Fprintf(w, "func Insert%[1]s(ctx context.Context, execer execer, values ...*%[1]s) error {", table.rawName)
 
 	columns := make([]string, 0, len(table.columns))
@@ -305,10 +309,39 @@ func (m *Maker) generateGoTable(w io.Writer, table *table) {
 		placeholders = append(placeholders, "?")
 		values = append(values, fmt.Sprintf("v.%s", c.rawName))
 	}
-	fmt.Fprintf(w, "for _, v := range values {\n")
-	fmt.Fprintf(w, "_, err := execer.ExecContext(ctx, %q, %s)\n", "INSERT INTO "+quote(table.name)+" ("+strings.Join(columns, ", ")+") VALUES ("+strings.Join(placeholders, ", ")+")", strings.Join(values, ", "))
-	fmt.Fprintf(w, "if err != nil {\n return err\n }\n")
-	fmt.Fprintf(w, "}\n")
-	fmt.Fprintf(w, "return nil")
-	fmt.Fprintf(w, "}")
+
+	strPlaceholders := ", (" + strings.Join(placeholders, ", ") + ")"
+	maxStructCount := maxPlaceholderCount / len(placeholders)
+	if maxStructCount > maxMaxStructCount {
+		maxStructCount = maxMaxStructCount
+	}
+	insert := "INSERT INTO " + quote(table.name) + " (" + strings.Join(columns, ", ") + ") VALUES" + " (" + strings.Join(placeholders, ", ") + ")"
+	fmt.Fprintf(w, "const q = %q+\n%q\n", insert, strings.Repeat(strPlaceholders, maxStructCount-1))
+	fmt.Fprintf(w, "const fieldCount = %d\n", len(placeholders))
+	fmt.Fprintf(w, "const maxStructCount = %d\n", maxStructCount)
+
+	fmt.Fprintf(w, `count := len(values)
+	if count > maxStructCount {
+		count = maxStructCount
+	}
+	args = make([]any, 0, count*fieldCount)
+	for len(values) > 0 {
+		i := len(values)
+		if i > maxStructCount {
+			i = maxStructCount
+		}
+		vals, rest := values[:i], values[i:]
+		args = args[:0]
+		for _, v := range vals {
+			args = append(args, %s)
+		}
+		_, err := execer.ExecContext(ctx, q[:i*%d+%d], args...)
+		if err != nil {
+			return err
+		}
+		values = rest
+	}
+return nil
+}
+`, strings.Join(values, ", "), len(strPlaceholders), len(insert)-len(strPlaceholders))
 }
