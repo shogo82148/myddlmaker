@@ -102,6 +102,9 @@ type column struct {
 	// def is the default value of the column.
 	def string
 
+	// comment is a comment
+	comment string
+
 	// charset is character set
 	charset string
 
@@ -230,6 +233,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 				col.charset = val
 			case "collate":
 				col.collate = val
+			case "comment":
+				col.comment = val
 			}
 		}
 	}
