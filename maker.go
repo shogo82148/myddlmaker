@@ -140,6 +140,10 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 	if col.autoIncr {
 		io.WriteString(w, " AUTO_INCREMENT")
 	}
+	if col.comment != "" {
+		io.WriteString(w, " COMMENT ")
+		io.WriteString(w, stringQuote(col.comment))
+	}
 	io.WriteString(w, ",\n")
 }
 
