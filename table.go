@@ -25,13 +25,14 @@ type Table interface {
 }
 
 type table struct {
-	name          string
-	rawName       string
-	columns       []*column
-	primaryKey    *PrimaryKey
-	indexes       []*Index
-	uniqueIndexes []*UniqueIndex
-	foreignKeys   []*ForeignKey
+	name            string
+	rawName         string
+	columns         []*column
+	primaryKey      *PrimaryKey
+	indexes         []*Index
+	uniqueIndexes   []*UniqueIndex
+	foreignKeys     []*ForeignKey
+	fullTextIndexes []*FullTextIndex
 }
 
 func newTable(s any) (*table, error) {
@@ -74,6 +75,9 @@ func newTable(s any) (*table, error) {
 	}
 	if idx, ok := iface.(foreignKeys); ok {
 		tbl.foreignKeys = idx.ForeignKeys()
+	}
+	if idx, ok := iface.(fullTextIndexes); ok {
+		tbl.fullTextIndexes = idx.FullTextIndexes()
 	}
 
 	return &tbl, nil
