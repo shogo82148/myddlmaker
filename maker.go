@@ -190,9 +190,28 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, " (")
 		io.WriteString(w, quote(idx.column))
 		io.WriteString(w, ")")
+		if idx.invisible {
+			io.WriteString(w, " INVISIBLE")
+		}
 		if idx.parser != "" {
 			io.WriteString(w, " WITH PARSER ")
 			io.WriteString(w, idx.parser)
+		}
+		if idx.comment != "" {
+			io.WriteString(w, " COMMENT ")
+			io.WriteString(w, stringQuote(idx.comment))
+		}
+		io.WriteString(w, ",\n")
+	}
+
+	for _, idx := range table.spatialIndexes {
+		io.WriteString(w, "    SPATIAL INDEX ")
+		io.WriteString(w, quote(idx.name))
+		io.WriteString(w, " (")
+		io.WriteString(w, quote(idx.column))
+		io.WriteString(w, ")")
+		if idx.invisible {
+			io.WriteString(w, " INVISIBLE")
 		}
 		if idx.comment != "" {
 			io.WriteString(w, " COMMENT ")

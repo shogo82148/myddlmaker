@@ -159,6 +159,21 @@ func (*Foo10) FullTextIndexes() []*FullTextIndex {
 	}
 }
 
+type Foo11 struct {
+	ID    int32  `ddl:",auto"`
+	Point string `ddl:",type=GEOMETRY,srid=4326"`
+}
+
+func (*Foo11) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo11) SpatialIndexes() []*SpatialIndex {
+	return []*SpatialIndex{
+		NewSpatialIndex("idx_point", "point").Comment("SPATIAL INDEX"),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -377,6 +392,17 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `text` VARCHAR(191) NOT NULL,\n"+
 		"    FULLTEXT INDEX `idx_text` (`text`) WITH PARSER ngram COMMENT 'FULLTEXT INDEX',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// SPATIAL INDEX
+	testMaker(t, []any{&Foo11{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo11`;\n\n"+
+		"CREATE TABLE `foo11` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    `point` GEOMETRY NOT NULL,\n"+
+		"    SPATIAL INDEX `idx_point` (`point`) COMMENT 'SPATIAL INDEX',\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
