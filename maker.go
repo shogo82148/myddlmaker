@@ -20,6 +20,7 @@ type DBConfig struct {
 	Driver  string
 	Engine  string
 	Charset string
+	Collate string
 }
 
 type Maker struct {
@@ -101,6 +102,9 @@ func (m *Maker) generateTable(w io.Writer, table *table) {
 		if charset := m.config.DB.Charset; charset != "" {
 			fmt.Fprintf(w, " DEFAULT CHARACTER SET = %s", charset)
 		}
+		if collate := m.config.DB.Collate; collate != "" {
+			fmt.Fprintf(w, " DEFAULT COLLATE = %s", collate)
+		}
 	}
 	fmt.Fprintf(w, ";\n\n")
 }
@@ -113,8 +117,16 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 	if col.size != 0 {
 		fmt.Fprintf(w, "(%d)", col.size)
 	}
+	if col.charset != "" {
+		io.WriteString(w, " CHARACTER SET ")
+		io.WriteString(w, col.charset)
+	}
+	if col.collate != "" {
+		io.WriteString(w, " COLLATE ")
+		io.WriteString(w, col.collate)
+	}
 	if col.unsigned {
-		io.WriteString(w, " unsigned")
+		io.WriteString(w, " UNSIGNED")
 	}
 	if col.null {
 		io.WriteString(w, " NULL")
