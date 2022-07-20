@@ -2,6 +2,7 @@ package myddlmaker
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -112,6 +113,7 @@ var nullFloat64Type = reflect.TypeOf(sql.NullFloat64{})
 var nullInt16Type = reflect.TypeOf(sql.NullInt16{})
 var nullInt32Type = reflect.TypeOf(sql.NullInt32{})
 var nullInt64Type = reflect.TypeOf(sql.NullInt64{})
+var jsonRawMessageType = reflect.TypeOf(json.RawMessage{})
 
 func newColumn(f reflect.StructField) (*column, error) {
 	col := &column{}
@@ -149,7 +151,9 @@ func newColumn(f reflect.StructField) (*column, error) {
 		col.typ = "VARCHAR"
 		col.size = 191
 	case reflect.Slice:
-		if typ.Elem().Kind() == reflect.Uint8 {
+		if typ == jsonRawMessageType {
+			col.typ = "JSON"
+		} else if typ.Elem().Kind() == reflect.Uint8 {
 			col.typ = "VARBINARY"
 			col.size = 767
 		}
