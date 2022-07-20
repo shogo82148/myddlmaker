@@ -246,7 +246,7 @@ func testMakerGo(t *testing.T, structs []any, src string) {
 }
 
 func TestMaker_Generate(t *testing.T) {
-	testMaker(t, []any{&Foo1{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo1{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -254,7 +254,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo2_customized`;\n\n"+
 		"CREATE TABLE `foo2_customized` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
@@ -264,7 +264,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo3{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo3{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo3`;\n\n"+
 		"CREATE TABLE `foo3` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -274,12 +274,12 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo1{}, &Foo4{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo1{}, &Foo4{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n\n"+
 		"DROP TABLE IF EXISTS `foo4`;\n\n"+
 		"CREATE TABLE `foo4` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -289,14 +289,14 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo5{}, &Foo1{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo5{}, &Foo1{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo5`;\n\n"+
 		"CREATE TABLE `foo5` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -304,7 +304,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo6{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo6{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo6`;\n\n"+
 		"CREATE TABLE `foo6` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -316,7 +316,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo7{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo7{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo7`;\n\n"+
 		"CREATE TABLE `foo7` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -326,7 +326,7 @@ func TestMaker_Generate(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	// invisible index
-	testMaker(t, []any{&Foo8{}}, "SET foreign_key_checks=0;\n"+
+	testMaker(t, []any{&Foo8{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo8`;\n\n"+
 		"CREATE TABLE `foo8` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+

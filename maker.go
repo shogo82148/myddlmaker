@@ -85,7 +85,7 @@ func (m *Maker) parse() error {
 }
 
 func (m *Maker) generateTable(w io.Writer, table *table) {
-	fmt.Fprintf(w, "DROP TABLE IF EXISTS %s;\n\n", quote(table.name))
+	fmt.Fprintf(w, "\nDROP TABLE IF EXISTS %s;\n\n", quote(table.name))
 	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.name))
 	for _, col := range table.columns {
 		m.generateColumn(w, col)
