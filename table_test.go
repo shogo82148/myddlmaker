@@ -24,6 +24,10 @@ type FooBar struct {
 	String string
 	Bool   bool
 
+	// binary types
+	Bytes     []byte
+	ByteArray [4]byte
+
 	// custom type
 	MyInt      myInt
 	CustomType customType `ddl:",type=TIMESTAMP"`
@@ -69,6 +73,8 @@ func TestTable(t *testing.T) {
 			{name: "uint64", rawName: "Uint64", typ: "BIGINT", unsigned: true},
 			{name: "string", rawName: "String", typ: "VARCHAR", size: 191},
 			{name: "bool", rawName: "Bool", typ: "TINYINT", size: 1},
+			{name: "bytes", rawName: "Bytes", typ: "VARBINARY", size: 767},
+			{name: "byte_array", rawName: "ByteArray", typ: "BINARY", size: 4},
 			{name: "my_int", rawName: "MyInt", typ: "BIGINT"},
 			{name: "custom_type", rawName: "CustomType", typ: "TIMESTAMP"},
 			{name: "p_int8", rawName: "PInt8", typ: "TINYINT"},

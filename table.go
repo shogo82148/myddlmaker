@@ -148,6 +148,16 @@ func newColumn(f reflect.StructField) (*column, error) {
 	case reflect.String:
 		col.typ = "VARCHAR"
 		col.size = 191
+	case reflect.Slice:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			col.typ = "VARBINARY"
+			col.size = 767
+		}
+	case reflect.Array:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			col.typ = "BINARY"
+			col.size = typ.Len()
+		}
 	case reflect.Struct:
 		switch typ {
 		case timeType:
