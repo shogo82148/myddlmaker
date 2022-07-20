@@ -25,6 +25,7 @@ type Table interface {
 
 type table struct {
 	name          string
+	rawName       string
 	columns       []*column
 	primaryKey    *PrimaryKey
 	indexes       []*Index
@@ -41,6 +42,7 @@ func newTable(s any) (*table, error) {
 	}
 
 	var tbl table
+	tbl.rawName = typ.Name()
 	if t, ok := iface.(Table); ok {
 		tbl.name = t.Table()
 	} else {
@@ -77,13 +79,27 @@ func newTable(s any) (*table, error) {
 }
 
 type column struct {
-	name     string
-	typ      string
-	size     int
+	// name is the name in SQL queries
+	name string
+
+	// rawName is the name in Go codes.
+	rawName string
+
+	// typ is the type name in SQL queries
+	typ string
+
+	size int
+
+	// autoIncr marks the column an auto increment column.
 	autoIncr bool
+
 	unsigned bool
-	null     bool
-	def      string
+
+	// null enables to accept NULL values.
+	null bool
+
+	// def is the default value of the column.
+	def string
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
@@ -159,6 +175,7 @@ func newColumn(f reflect.StructField) (*column, error) {
 	}
 
 	// parse the tag of the field.
+	col.rawName = f.Name
 	name, remain, _ := strings.Cut(f.Tag.Get(StructTagName), ",")
 	if name == "" {
 		name = camelToSnake(f.Name)
