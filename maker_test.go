@@ -318,10 +318,16 @@ package schema
 
 import (
 	"context"
+	"database/sql"
 )
 
 type execer interface {
-	ExecContext(context.Context, string, ...interface{})
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+}
+
+type queryer interface {
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
 
 func InsertFoo1(ctx context.Context, execer execer, values ...*Foo1) error {
@@ -351,6 +357,15 @@ func InsertFoo1(ctx context.Context, execer execer, values ...*Foo1) error {
 		values = rest
 	}
 	return nil
+}
+
+func SelectFoo1(ctx context.Context, queryer queryer, primaryKeys *Foo1) (*Foo1, error) {
+	var v Foo1
+	row := queryer.QueryRowContext(ctx, "SELECT `+"`"+`id`+"`"+` FROM `+"`"+`foo1`+"`"+` WHERE `+"`"+`id`+"`"+` = ?", primaryKeys.ID)
+	if err := row.Scan(&v.ID); err != nil {
+		return nil, err
+	}
+	return &v, nil
 }
 `)
 }

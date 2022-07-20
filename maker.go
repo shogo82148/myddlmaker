@@ -285,16 +285,27 @@ func (m *Maker) generateGoHeader(w io.Writer) {
 	fmt.Fprintf(w, "package %s\n\n", m.config.PackageName)
 	fmt.Fprintf(w, `import (
 		"context"
+		"database/sql"
 	)
 
 	type execer interface {
-		ExecContext(context.Context, string, ...interface{})
+		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	}
+
+	type queryer interface {
+		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+		QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 	}
 
 	`)
 }
 
 func (m *Maker) generateGoTable(w io.Writer, table *table) {
+	m.generateGoTableInsert(w, table)
+	m.generateGoTableSelect(w, table)
+}
+
+func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
 	// https://stackoverflow.com/questions/18100782/import-of-50k-records-in-mysql-gives-general-error-1390-prepared-statement-con
 	const maxPlaceholderCount = 65535
 	const maxMaxStructCount = 32
@@ -305,6 +316,9 @@ func (m *Maker) generateGoTable(w io.Writer, table *table) {
 	placeholders := make([]string, 0, len(table.columns))
 	values := make([]string, 0, len(table.columns))
 	for _, c := range table.columns {
+		if c.autoIncr {
+			continue
+		}
 		columns = append(columns, quote(c.name))
 		placeholders = append(placeholders, "?")
 		values = append(values, fmt.Sprintf("v.%s", c.rawName))
@@ -341,7 +355,38 @@ func (m *Maker) generateGoTable(w io.Writer, table *table) {
 		}
 		values = rest
 	}
-return nil
+	return nil
 }
+
 `, strings.Join(values, ", "), len(strPlaceholders), len(insert)-len(strPlaceholders))
+}
+
+func (m *Maker) generateGoTableSelect(w io.Writer, table *table) {
+	fields := make([]string, 0, len(table.columns))
+	goFields := make([]string, 0, len(table.columns))
+	params := make([]string, 0, len(table.primaryKey.columns))
+	conditions := make([]string, 0, len(table.primaryKey.columns))
+	for _, c := range table.columns {
+		fields = append(fields, quote(c.name))
+		goFields = append(goFields, "&v."+c.rawName)
+		for _, key := range table.primaryKey.columns {
+			if key == c.name {
+				params = append(params, fmt.Sprintf("primaryKeys.%s", c.rawName))
+				conditions = append(conditions, fmt.Sprintf("%s = ?", quote(c.name)))
+			}
+		}
+	}
+
+	sqlSelect := fmt.Sprintf(
+		"SELECT %s FROM %s WHERE %s",
+		strings.Join(fields, ", "),
+		quote(table.name),
+		strings.Join(conditions, " AND "),
+	)
+	fmt.Fprintf(w, "func Select%[1]s(ctx context.Context, queryer queryer, primaryKeys *%[1]s) (*%[1]s, error) {\n", table.rawName)
+	fmt.Fprintf(w, "var v %s\n", table.rawName)
+	fmt.Fprintf(w, "row := queryer.QueryRowContext(ctx, %q, %s)\n", sqlSelect, strings.Join(params, ", "))
+	fmt.Fprintf(w, "if err := row.Scan(%s); err != nil {\n return nil, err \n}\n", strings.Join(goFields, ", "))
+	fmt.Fprintf(w, "return &v, nil\n")
+	fmt.Fprintf(w, "}\n\n")
 }
