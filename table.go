@@ -33,6 +33,7 @@ type table struct {
 	uniqueIndexes   []*UniqueIndex
 	foreignKeys     []*ForeignKey
 	fullTextIndexes []*FullTextIndex
+	spatialIndexes  []*SpatialIndex
 }
 
 func newTable(s any) (*table, error) {
@@ -79,6 +80,9 @@ func newTable(s any) (*table, error) {
 	if idx, ok := iface.(fullTextIndexes); ok {
 		tbl.fullTextIndexes = idx.FullTextIndexes()
 	}
+	if idx, ok := iface.(spatialIndex); ok {
+		tbl.spatialIndexes = idx.SpatialIndexes()
+	}
 
 	return &tbl, nil
 }
@@ -118,6 +122,9 @@ type column struct {
 
 	// collate is collation name
 	collate string
+
+	// srid is the id of spatial reference systems
+	srid int
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
@@ -233,6 +240,12 @@ func newColumn(f reflect.StructField) (*column, error) {
 					return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
 				}
 				col.size = int(v)
+			case "srid":
+				v, err := strconv.ParseInt(val, 10, 0)
+				if err != nil {
+					return nil, fmt.Errorf("myddlmaker: failed to parse srid param in tag: %w", err)
+				}
+				col.srid = int(v)
 			case "type":
 				col.typ = val
 				col.unsigned = false

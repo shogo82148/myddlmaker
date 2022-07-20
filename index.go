@@ -125,10 +125,11 @@ type fullTextIndexes interface {
 
 // https://dev.mysql.com/doc/refman/8.0/en/innodb-fulltext-index.html
 type FullTextIndex struct {
-	name    string
-	column  string
-	comment string
-	parser  string
+	name      string
+	column    string
+	invisible bool
+	comment   string
+	parser    string
 }
 
 func NewFullTextIndex(name string, column string) *FullTextIndex {
@@ -136,6 +137,12 @@ func NewFullTextIndex(name string, column string) *FullTextIndex {
 		name:   name,
 		column: column,
 	}
+}
+
+func (idx *FullTextIndex) Invisible() *FullTextIndex {
+	tmp := *idx // shallow copy
+	tmp.invisible = true
+	return &tmp
 }
 
 func (idx *FullTextIndex) Comment(comment string) *FullTextIndex {
@@ -147,5 +154,35 @@ func (idx *FullTextIndex) Comment(comment string) *FullTextIndex {
 func (idx *FullTextIndex) WithParser(parser string) *FullTextIndex {
 	tmp := *idx // shallow copy
 	tmp.parser = parser
+	return &tmp
+}
+
+type spatialIndex interface {
+	SpatialIndexes() []*SpatialIndex
+}
+
+type SpatialIndex struct {
+	name      string
+	column    string
+	invisible bool
+	comment   string
+}
+
+func NewSpatialIndex(name string, column string) *SpatialIndex {
+	return &SpatialIndex{
+		name:   name,
+		column: column,
+	}
+}
+
+func (idx *SpatialIndex) Invisible() *SpatialIndex {
+	tmp := *idx // shallow copy
+	tmp.invisible = true
+	return &tmp
+}
+
+func (idx *SpatialIndex) Comment(comment string) *SpatialIndex {
+	tmp := *idx // shallow copy
+	tmp.comment = comment
 	return &tmp
 }
