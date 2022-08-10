@@ -43,4 +43,13 @@ func TestFoo1(t *testing.T) {
 	if _, err := SelectFoo1(ctx, db, &Foo1{ID: 43}); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("want sql.ErrNoRows, but got %v", err)
 	}
+
+	// multiple insert
+	foo := []*Foo1{}
+	for i := 0; i < 10000; i++ {
+		foo = append(foo, &Foo1{ID: 1000 + int32(i)})
+	}
+	if err := InsertFoo1(ctx, db, foo...); err != nil {
+		t.Errorf("failed to insert: %v", err)
+	}
 }

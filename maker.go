@@ -354,11 +354,13 @@ func (m *Maker) generateGoHeader(w io.Writer) {
 
 	type execer interface {
 		ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+		PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 	}
 
 	type queryer interface {
 		QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 		QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+		PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 	}
 
 	`)
@@ -399,26 +401,45 @@ func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
 	fmt.Fprintf(w, "const fieldCount = %d\n", len(placeholders))
 	fmt.Fprintf(w, "const maxStructCount = %d\n", maxStructCount)
 
-	fmt.Fprintf(w, `count := len(values)
-	if count > maxStructCount {
-		count = maxStructCount
-	}
-	args := make([]any, 0, count*fieldCount)
-	for len(values) > 0 {
-		i := len(values)
-		if i > maxStructCount {
-			i = maxStructCount
-		}
-		vals, rest := values[:i], values[i:]
-		args = args[:0]
-		for _, v := range vals {
-			args = append(args, %s)
-		}
-		_, err := execer.ExecContext(ctx, q[:i*%d+%d], args...)
+	fmt.Fprintf(w, `var args []any
+	if len(values) >= maxStructCount {
+		args = make([]any, 0, maxStructCount*fieldCount)
+		err := func() error {
+			stmt, err := execer.PrepareContext(ctx, q)
+			if err != nil {
+				return err
+			}
+			defer stmt.Close()
+
+			for len(values) >= maxStructCount {
+				vals, rest := values[:maxStructCount], values[maxStructCount:]
+				args = args[:0]
+				for _, v := range vals {
+					args = append(args, %[1]s)
+				}
+				if _, err := stmt.ExecContext(ctx, args...); err != nil {
+					return err
+				}
+				values = rest
+			}
+			return nil
+		}()
 		if err != nil {
 			return err
 		}
-		values = rest
+	}
+	if len(values) == 0 {
+		return nil
+	}
+	if len(args) == 0 {
+		args = make([]any, 0, len(values)*fieldCount)
+	}
+	args = args[:0]
+	for _, v := range values {
+		args = append(args, %[1]s)
+	}
+	if _, err := execer.ExecContext(ctx, q[:len(values)*%[2]d+%[3]d], args...); err != nil {
+		return err
 	}
 	return nil
 }
