@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -39,7 +40,7 @@ func TestFoo1(t *testing.T) {
 		t.Errorf("failed to select: %v", err)
 	}
 
-	if _, err := SelectFoo1(ctx, db, &Foo1{ID: 43}); err != nil {
+	if _, err := SelectFoo1(ctx, db, &Foo1{ID: 43}); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("want sql.ErrNoRows, but got %v", err)
 	}
 }
