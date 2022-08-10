@@ -26,8 +26,6 @@ jobs:
           - "1.18"
         mysql:
           - "8.0"
-          - "5.7"
-          - "mariadb-10.6"
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3

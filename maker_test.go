@@ -402,6 +402,19 @@ func TestMaker_GenerateGo(t *testing.T) {
 		}
 
 		runTests := func(t *testing.T) error {
+			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+
+			var buf bytes.Buffer
+			args := []string{"test", "./..."}
+			cmd := exec.CommandContext(ctx, goTool(), args...)
+			cmd.Stdout = &buf
+			cmd.Stderr = &buf
+			cmd.Dir = dir
+			if err := cmd.Run(); err != nil {
+				t.Errorf("failed to run test: %v, output:\n%s", err, buf.String())
+				return err
+			}
 			return nil
 		}
 		return func(t *testing.T) {
