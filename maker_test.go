@@ -379,7 +379,7 @@ func TestMaker_GenerateGo(t *testing.T) {
 	fn := func(dir string) func(t *testing.T) {
 		// gen generates 'scheme.sql' and 'scheme_gen.go'
 		gen := func(t *testing.T) error {
-			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 			defer cancel()
 
 			var buf bytes.Buffer
@@ -396,11 +396,11 @@ func TestMaker_GenerateGo(t *testing.T) {
 		}
 
 		runTests := func(t *testing.T) error {
-			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 			defer cancel()
 
 			var buf bytes.Buffer
-			args := []string{"test", "./..."}
+			args := []string{"test"}
 			cmd := exec.CommandContext(ctx, goTool(), args...)
 			cmd.Stdout = &buf
 			cmd.Stderr = &buf
