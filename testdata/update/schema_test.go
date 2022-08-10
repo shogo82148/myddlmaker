@@ -29,7 +29,7 @@ func TestFoo1(t *testing.T) {
 	}
 	defer db.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	u1 := &User{

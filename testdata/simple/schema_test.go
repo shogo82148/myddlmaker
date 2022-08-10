@@ -30,7 +30,7 @@ func TestFoo1(t *testing.T) {
 	}
 	defer db.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	if err := InsertFoo1(ctx, db, &Foo1{ID: 42}); err != nil {
 		t.Errorf("failed to insert: %v", err)
@@ -46,7 +46,7 @@ func TestFoo1(t *testing.T) {
 
 	// multiple insert
 	foo := []*Foo1{}
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		foo = append(foo, &Foo1{ID: 1000 + int32(i)})
 	}
 	if err := InsertFoo1(ctx, db, foo...); err != nil {
