@@ -502,12 +502,19 @@ LOOP:
 		strings.Join(setFields, ", "),
 		strings.Join(conditions, " AND "),
 	)
-	fmt.Fprintf(w, "func Update%[1]s(ctx context.Context, execer execer, value *%[1]s) error {\n", table.rawName)
+	fmt.Fprintf(w, "func Update%[1]s(ctx context.Context, execer execer, values ...*%[1]s) error {\n", table.rawName)
 	if len(setFields) != 0 {
-		fmt.Fprintf(w, "_, err := execer.ExecContext(ctx, %q, %s, %s)\n", update, strings.Join(goFields, ", "), strings.Join(params, ", "))
+		fmt.Fprintf(w, "stmt, err := execer.PrepareContext(ctx, %q)\n", update)
+		fmt.Fprintf(w, "if err != nil {\n")
 		fmt.Fprintf(w, "return err\n")
-	} else {
-		fmt.Fprintf(w, "return nil\n")
+		fmt.Fprintf(w, "}\n")
+		fmt.Fprintf(w, "defer stmt.Close()\n")
+		fmt.Fprintf(w, "for _, value := range values {\n")
+		fmt.Fprintf(w, "if _, err := stmt.ExecContext(ctx, %s, %s); err != nil {\n", strings.Join(goFields, ", "), strings.Join(params, ", "))
+		fmt.Fprintf(w, "return err\n")
+		fmt.Fprintf(w, "}\n")
+		fmt.Fprintf(w, "}\n")
 	}
+	fmt.Fprintf(w, "return nil\n")
 	fmt.Fprintf(w, "}\n\n")
 }
