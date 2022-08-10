@@ -400,7 +400,7 @@ func TestMaker_GenerateGo(t *testing.T) {
 			defer cancel()
 
 			var buf bytes.Buffer
-			args := []string{"test", "./..."}
+			args := []string{"test"}
 			cmd := exec.CommandContext(ctx, goTool(), args...)
 			cmd.Stdout = &buf
 			cmd.Stderr = &buf
