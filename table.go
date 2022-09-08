@@ -191,8 +191,10 @@ func newColumn(f reflect.StructField) (*column, error) {
 		switch typ {
 		case timeType:
 			col.typ = "DATETIME"
+			col.size = 6
 		case nullTimeType:
 			col.typ = "DATETIME"
+			col.size = 6
 		case nullStringType:
 			col.typ = "VARCHAR"
 			col.size = 191

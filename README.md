@@ -195,7 +195,7 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 |  `string`, `sql.NullString`  |      `VARCHAR`      |
 |    `bool`, `sql.NullBool`    |    `TINYINT(1)`     |
 |           `[]byte`           |      `VARCHAR`      |
-|         `time.Time`          |     `DATETIME`      |
+|         `time.Time`          |    `DATETIME(6)`    |
 |      `json.RawMessage`       |       `JSON`        |
 
 ## Go Struct Tag Options
