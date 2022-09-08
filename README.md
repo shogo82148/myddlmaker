@@ -1,6 +1,7 @@
 # myddlmaker
 
 ![Build Status](https://github.com/shogo82148/myddlmaker/workflows/Go/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/shogo82148/myddlmaker.svg)](https://pkg.go.dev/github.com/shogo82148/myddlmaker)
 
 myddlmaker is generate DDL (Data Definition Language) from Go structs.
 It is a fork of [kayac/ddl-maker](https://github.com/kayac/ddl-maker) that focuses to use with MySQL.
