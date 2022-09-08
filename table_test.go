@@ -87,7 +87,7 @@ func TestTable(t *testing.T) {
 			{name: "null_time", rawName: "NullTime", typ: "DATETIME"},
 			{name: "null_string", rawName: "NullString", typ: "VARCHAR", size: 191},
 			{name: "null_bool", rawName: "NullBool", typ: "TINYINT", size: 1},
-			{name: "null_byte", rawName: "NullByte", typ: "VARBINARY", size: 767},
+			{name: "null_byte", rawName: "NullByte", typ: "TINYINT", unsigned: true},
 			{name: "null_float64", rawName: "NullFloat64", typ: "DOUBLE"},
 			{name: "null_int16", rawName: "NullInt16", typ: "SMALLINT"},
 			{name: "null_int32", rawName: "NullInt32", typ: "INTEGER"},

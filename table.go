@@ -200,8 +200,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.typ = "TINYINT"
 			col.size = 1
 		case nullByteType:
-			col.typ = "VARBINARY"
-			col.size = 767
+			col.typ = "TINYINT"
+			col.unsigned = true
 		case nullFloat64Type:
 			col.typ = "DOUBLE"
 		case nullInt16Type:
