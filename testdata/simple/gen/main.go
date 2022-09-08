@@ -8,16 +8,7 @@ import (
 )
 
 func main() {
-	m, err := myddlmaker.New(&myddlmaker.Config{
-		DB: &myddlmaker.DBConfig{
-			Engine:  "InnoDB",
-			Charset: "utf8mb4",
-		},
-		OutFilePath:   "schema.sql",
-		OutGoFilePath: "schema_gen.go",
-		PackageName:   "schema",
-		Tag:           "myddlmaker",
-	})
+	m, err := myddlmaker.New(&myddlmaker.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}

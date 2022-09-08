@@ -177,15 +177,11 @@ func (*Foo11) SpatialIndexes() []*SpatialIndex {
 }
 
 func testMaker(t *testing.T, structs []any, ddl string) {
+	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	m, err := New(&Config{
-		DB: &DBConfig{
-			Engine:  "InnoDB",
-			Charset: "utf8mb4",
-		},
-	})
+	m, err := New(&Config{})
 	if err != nil {
 		t.Fatalf("failed to initialize Maker: %v", err)
 	}
@@ -254,7 +250,7 @@ func TestMaker_Generate(t *testing.T) {
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n\n"+
@@ -264,7 +260,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL INVISIBLE COMMENT '\\'コメント\\'',\n"+
 		"    INDEX `idx_name` (`name`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo3{}}, "SET foreign_key_checks=0;\n\n"+
@@ -274,7 +270,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    UNIQUE `idx_name` (`name`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo1{}, &Foo4{}}, "SET foreign_key_checks=0;\n\n"+
@@ -282,14 +278,14 @@ func TestMaker_Generate(t *testing.T) {
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
 		"DROP TABLE IF EXISTS `foo4`;\n\n"+
 		"CREATE TABLE `foo4` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo5{}, &Foo1{}}, "SET foreign_key_checks=0;\n\n"+
@@ -299,12 +295,12 @@ func TestMaker_Generate(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo6{}}, "SET foreign_key_checks=0;\n\n"+
@@ -316,7 +312,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    INDEX `idx_name` (`name`) COMMENT 'an index\\n\\twith \\'comment\\'',\n"+
 		"    UNIQUE `uniq_email` (`email`) COMMENT 'a unique index\\n\\twith \\'comment\\'',\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	testMaker(t, []any{&Foo7{}}, "SET foreign_key_checks=0;\n\n"+
@@ -325,7 +321,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL DEFAULT 'John Doe',\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	// invisible index
@@ -336,7 +332,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    INDEX `idx_name` (`name`) INVISIBLE,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	// charset and collate
@@ -346,7 +342,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `name` VARCHAR(191) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	// FULLTEXT INDEX
@@ -357,7 +353,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `text` VARCHAR(191) NOT NULL,\n"+
 		"    FULLTEXT INDEX `idx_text` (`text`) WITH PARSER ngram COMMENT 'FULLTEXT INDEX',\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	// SPATIAL INDEX
@@ -368,7 +364,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `point` GEOMETRY NOT NULL,\n"+
 		"    SPATIAL INDEX `idx_point` (`point`) COMMENT 'SPATIAL INDEX',\n"+
 		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;\n\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 }
 
