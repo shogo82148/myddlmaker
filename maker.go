@@ -144,13 +144,13 @@ func (m *Maker) generateTable(w io.Writer, table *table) {
 	fmt.Fprintf(w, ")")
 	if m.config != nil && m.config.DB != nil {
 		if engine := m.config.DB.Engine; engine != "" {
-			fmt.Fprintf(w, " ENGINE = %s", engine)
+			fmt.Fprintf(w, " ENGINE=%s", engine)
 		}
 		if charset := m.config.DB.Charset; charset != "" {
-			fmt.Fprintf(w, " DEFAULT CHARACTER SET = %s", charset)
+			fmt.Fprintf(w, " DEFAULT CHARACTER SET=%s", charset)
 		}
 		if collate := m.config.DB.Collate; collate != "" {
-			fmt.Fprintf(w, " DEFAULT COLLATE = %s", collate)
+			fmt.Fprintf(w, " DEFAULT COLLATE=%s", collate)
 		}
 	}
 	fmt.Fprintf(w, ";\n\n")
