@@ -177,3 +177,156 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 	CreatedAt: time.Now(),
 })
 ```
+
+## MySQL Types and Go Types
+
+|         Golang Type          |    MySQL Column     |
+| :--------------------------: | :-----------------: |
+|            `int8`            |      `TINYINT`      |
+|           `int16`            |     `SMALLINT`      |
+|           `int32`            |      `INTEGER`      |
+|   `int64`, `sql.NullInt64`   |      `BIGINT`       |
+|   `uint8`, `sql.NullByte`    | `TINYINT UNSIGNED`  |
+|           `uint16`           | `SMALLINT UNSIGNED` |
+|           `uint32`           | `INTEGER UNSIGNED`  |
+|           `uint64`           |  `BIGINT UNSIGNED`  |
+|          `float32`           |       `FLOAT`       |
+| `float64`, `sql.NullFloat64` |      `DOUBLE`       |
+|  `string`, `sql.NullString`  |      `VARCHAR`      |
+|    `bool`, `sql.NullBool`    |    `TINYINT(1)`     |
+|           `[]byte`           |      `VARCHAR`      |
+|         `time.Time`          |     `DATETIME`      |
+|      `json.RawMessage`       |       `JSON`        |
+
+## Go Struct Tag Options
+
+|      Tag Value      |                SQL Fragment                 |
+| :-----------------: | :-----------------------------------------: |
+|       `null`        |        `NULL` (default: `NOT NULL`)         |
+|       `auto`        |              `AUTO INCREMENT`               |
+|     `invisible`     |                 `INVISIBLE`                 |
+|    `size=<size>`    | `VARCHAR(<size>)`, `DATETIME(<size>)`, etc. |
+|    `type=<type>`    |             override field type             |
+|    `srid=<srid>`    |                override SRID                |
+|  `default=<value>`  |              `DEFAULT <value>`              |
+| `charset=<charset>` |          `CHARACTER SET <charset>`          |
+| `collate=<collate>` |             `COLLATE <collate>`             |
+| `comment=<comment>` |             `COMMENT <comment>`             |
+
+## Primary Index
+
+Implement the `PrimaryKey` method to define the primary index.
+
+```go
+func (*User) PrimaryKey() *myddlmaker.PrimaryKey {
+    // PRIMARY KEY (`id1`, `id2`)
+    return myddlmaker.NewPrimaryKey("id1", "id2")
+}
+```
+
+## Indexes
+
+Implement the `Indexes` method to define the indexes.
+
+```go
+func (*User) Indexes() []*myddlmaker.Index {
+    return []*myddlmaker.Index{
+        // INDEX `idx_name` (`name`)
+        myddlmaker.NewIndex("idx_name", "name"),
+
+        // INDEX `idx_name` (`name`) COMMENT 'some comment'
+        myddlmaker.NewIndex("idx_name", "name").Comment("some comment"),
+
+        // INDEX `idx_name` (`name`) INVISIBLE
+        myddlmaker.NewIndex("idx_name", "name").Invisible(),
+    }
+}
+```
+
+## Unique Indexes
+
+Implement the `UniqueIndexes` method to define the unique indexes.
+
+```go
+func (*User) UniqueIndexes() []*myddlmaker.UniqueIndex {
+    return []*myddlmaker.UniqueIndex{
+        // UNIQUE INDEX `idx_name` (`name`)
+        myddlmaker.NewUniqueIndex("idx_name", "name"),
+
+        // UNIQUE INDEX `idx_name` (`name`) COMMENT 'some comment'
+        myddlmaker.NewUniqueIndex("idx_name", "name").Comment("some comment"),
+
+        // UNIQUE INDEX `idx_name` (`name`) INVISIBLE
+        myddlmaker.NewUniqueIndex("idx_name", "name").Invisible(),
+    }
+}
+```
+
+## Foreign Key Constraints
+
+Implement the `ForeignKeys` method to define the foreign key constraints.
+
+```go
+func (*User) ForeignKeys() []*myddlmaker.ForeignKey {
+    return []*myddlmaker.ForeignKey{
+        // CONSTRAINT `name_of_constraint`
+        //     FOREIGN KEY (`column1`, `column2`)
+        //     REFERENCES `another_table` (`id1`, `id2`)
+        myddlmaker.NewForeignKey(
+            "name_of_constraint",
+            []string{"column1", "column2"},
+            "another_table",
+            []string{"id1", "id2"},
+        ),
+
+        // CONSTRAINT `name_of_constraint`
+        //     FOREIGN KEY (`column1`, `column2`)
+        //     REFERENCES `another_table` (`id1`, `id2`)
+        //     ON DELETE CASCADE
+        myddlmaker.NewForeignKey(
+            "name_of_constraint",
+            []string{"column1", "column2"},
+            "another_table",
+            []string{"id1", "id2"},
+        ).OnDelete(myddlmaker.ForeignKeyOptionCascade),
+    }
+}
+```
+
+## Spatial Indexes
+
+Implement the `SpatialIndexes` method to define the spatial indexes.
+
+```go
+func (*User) SpatialIndexes() []*myddlmaker.SpatialIndex {
+    return []*myddlmaker.SpatialIndex{
+        // SPATIAL INDEX `idx_name` (`name`)
+        myddlmaker.NewSpatialIndex("idx_name", "name"),
+
+        // SPATIAL INDEX `idx_name` (`name`) COMMENT 'some comment'
+        myddlmaker.NewSpatialIndex("idx_name", "name").Comment("some comment"),
+
+        // SPATIAL INDEX `idx_name` (`name`) INVISIBLE
+        myddlmaker.NewSpatialIndex("idx_name", "name").Invisible(),
+    }
+}
+```
+
+## Full Text Indexes
+
+Implement the `FullTextIndexes` method to define the full-text indexes.
+
+```go
+func (*User) FullTextIndexes() []*myddlmaker.FullTextIndex {
+    return []*myddlmaker.FullTextIndex{
+        // FULLTEXT INDEX `idx_name` (`name`)
+        myddlmaker.NewFullTextIndex("idx_name", "name"),
+
+        // FULLTEXT INDEX `idx_name` (`name`) COMMENT 'some comment'
+        myddlmaker.NewFullTextIndex("idx_name", "name").Comment("some comment"),
+
+        // FULLTEXT INDEX `idx_name` (`name`) INVISIBLE
+        myddlmaker.NewFullTextIndex("idx_name", "name").Invisible(),
+    }
+}
+```
