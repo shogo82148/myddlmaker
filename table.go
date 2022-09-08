@@ -20,6 +20,7 @@ var (
 )
 
 // Table customize the table name.
+// Implement the Table interface to customize the table name.
 type Table interface {
 	Table() string
 }
