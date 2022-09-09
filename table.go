@@ -141,6 +141,7 @@ var nullInt64Type = reflect.TypeOf(sql.NullInt64{})
 var jsonRawMessageType = reflect.TypeOf(json.RawMessage{})
 
 func newColumn(f reflect.StructField) (*column, error) {
+	var invalidType bool
 	col := &column{}
 
 	typ := indirect(f.Type)
@@ -181,11 +182,15 @@ func newColumn(f reflect.StructField) (*column, error) {
 		} else if typ.Elem().Kind() == reflect.Uint8 {
 			col.typ = "VARBINARY"
 			col.size = 767
+		} else {
+			invalidType = true
 		}
 	case reflect.Array:
 		if typ.Elem().Kind() == reflect.Uint8 {
 			col.typ = "BINARY"
 			col.size = typ.Len()
+		} else {
+			invalidType = true
 		}
 	case reflect.Struct:
 		switch typ {
@@ -212,7 +217,11 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.typ = "INTEGER"
 		case nullInt64Type:
 			col.typ = "BIGINT"
+		default:
+			invalidType = true
 		}
+	default:
+		invalidType = true
 	}
 
 	// parse the tag of the field.
@@ -253,6 +262,7 @@ func newColumn(f reflect.StructField) (*column, error) {
 				col.typ = val
 				col.unsigned = false
 				col.size = 0
+				invalidType = false
 			case "default":
 				col.def = val
 			case "charset":
@@ -263,6 +273,10 @@ func newColumn(f reflect.StructField) (*column, error) {
 				col.comment = val
 			}
 		}
+	}
+
+	if invalidType {
+		return nil, fmt.Errorf("myddlmaker: unknown type: %s", typ.String())
 	}
 
 	return col, nil
