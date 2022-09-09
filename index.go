@@ -30,6 +30,12 @@ type Index struct {
 
 // NewIndex returns a new index.
 func NewIndex(name string, col ...string) *Index {
+	if name == "" {
+		panic("name is missing")
+	}
+	if len(col) == 0 {
+		panic("col is missing")
+	}
 	return &Index{
 		name:    name,
 		columns: col,
@@ -68,6 +74,12 @@ type UniqueIndex struct {
 
 // NewUniqueIndex returns a new unique index.
 func NewUniqueIndex(name string, col ...string) *UniqueIndex {
+	if name == "" {
+		panic("name is missing")
+	}
+	if len(col) == 0 {
+		panic("col is missing")
+	}
 	return &UniqueIndex{
 		name:    name,
 		columns: col,
@@ -203,6 +215,12 @@ type FullTextIndex struct {
 
 // NewFullTextIndex returns a new full text index.
 func NewFullTextIndex(name string, column string) *FullTextIndex {
+	if name == "" {
+		panic("name is missing")
+	}
+	if column == "" {
+		panic("column is missing")
+	}
 	return &FullTextIndex{
 		name:   name,
 		column: column,
@@ -252,6 +270,12 @@ type SpatialIndex struct {
 
 // NewSpatialIndex returns a new spatial index.
 func NewSpatialIndex(name string, column string) *SpatialIndex {
+	if name == "" {
+		panic("name is missing")
+	}
+	if column == "" {
+		panic("column is missing")
+	}
 	return &SpatialIndex{
 		name:   name,
 		column: column,
