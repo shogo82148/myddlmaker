@@ -105,3 +105,16 @@ func TestTable(t *testing.T) {
 		t.Errorf("table structures are not match (-want/+got):\n%s", diff)
 	}
 }
+
+func TestTable_UnknownType(t *testing.T) {
+	type FooBar struct {
+		// The DDL maker doesn't know about customType.
+		// It causes some errors.
+		Foo customType
+	}
+
+	_, err := newTable(&FooBar{})
+	if err == nil {
+		t.Error("want some errors, got nil")
+	}
+}
