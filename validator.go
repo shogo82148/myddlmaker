@@ -112,4 +112,15 @@ func (v *validator) validateIndex(table *table) {
 			}
 		}
 	}
+
+	for _, idx := range table.uniqueIndexes {
+		// check existence of the column in the unique index
+		for _, col := range idx.columns {
+			name := [2]string{table.name, col}
+			if _, ok := v.columnMap[name]; !ok {
+				v.SaveErrorf("table %q, unique index %q: column %q not found", table.name, idx.name, col)
+				continue
+			}
+		}
+	}
 }

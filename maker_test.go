@@ -208,7 +208,13 @@ func (*Foo14) PrimaryKey() *PrimaryKey {
 
 func (*Foo14) Indexes() []*Index {
 	return []*Index{
-		NewIndex("idx_name", "unknown_column"),
+		NewIndex("idx", "unknown_column"),
+	}
+}
+
+func (*Foo14) UniqueIndexes() []*UniqueIndex {
+	return []*UniqueIndex{
+		NewUniqueIndex("uniq", "unknown_column"),
 	}
 }
 
@@ -434,7 +440,8 @@ func TestMaker_Generate(t *testing.T) {
 	testMakerError(t, []any{&Foo13{}}, []string{`table "foo13", column "id": already exists`})
 	testMakerError(t, []any{&Foo14{}}, []string{
 		`table "foo14", primary key: column "unknown_column" not found`,
-		`table "foo14", index "idx_name": column "unknown_column" not found`,
+		`table "foo14", index "idx": column "unknown_column" not found`,
+		`table "foo14", unique index "uniq": column "unknown_column" not found`,
 	})
 }
 
