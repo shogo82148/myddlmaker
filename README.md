@@ -138,7 +138,7 @@ func SelectAllUser(ctx context.Context, queryer queryer) ([]*User, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var v Foo1
+		var v User
 		if err := rows.Scan(&v.ID, &v.Name, &v.CreatedAt); err != nil {
 			return nil, err
 		}
