@@ -39,6 +39,7 @@ func (v *validator) Validate() error {
 		v.validateIndex(table)
 		v.validateIndexName(table)
 	}
+	v.validateConstraints()
 
 	if err := v.Err(); err != nil {
 		return err
@@ -159,5 +160,19 @@ func (v *validator) validateIndexName(table *table) {
 			continue
 		}
 		seen[idx.name] = struct{}{}
+	}
+}
+
+func (v *validator) validateConstraints() {
+	seen := map[string]struct{}{}
+
+	for _, table := range v.tables {
+		for _, fk := range table.foreignKeys {
+			if _, ok := seen[fk.name]; ok {
+				v.SaveErrorf("table %q: duplicated name of foreign key constraint: %q", table.name, fk.name)
+				continue
+			}
+			seen[fk.name] = struct{}{}
+		}
 	}
 }

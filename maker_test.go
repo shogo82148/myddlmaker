@@ -251,6 +251,22 @@ func (*Foo15) SpatialIndexes() []*SpatialIndex {
 	}
 }
 
+type Foo16 struct {
+	ID   int32
+	Name string
+}
+
+func (*Foo16) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo16) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey("fk_duplicated", []string{"id"}, "foo16", []string{"id"}),
+		NewForeignKey("fk_duplicated", []string{"id"}, "foo16", []string{"id"}),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -487,6 +503,10 @@ func TestMaker_Generate(t *testing.T) {
 		`table "foo15": duplicated name of index: "idx_name"`,
 		`table "foo15": duplicated name of index: "idx_name"`,
 		`table "foo15": duplicated name of index: "idx_name"`,
+	})
+
+	testMakerError(t, []any{&Foo16{}}, []string{
+		`table "foo16": duplicated name of foreign key constraint: "fk_duplicated"`,
 	})
 }
 
