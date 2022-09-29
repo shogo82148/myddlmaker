@@ -415,6 +415,7 @@ func (m *Maker) generateGoHeader(w io.Writer) {
 func (m *Maker) generateGoTable(w io.Writer, table *table) {
 	m.generateGoTableInsert(w, table)
 	m.generateGoTableSelect(w, table)
+	m.generateGoTableSelectAll(w, table)
 	m.generateGoTableUpdate(w, table)
 }
 
@@ -520,6 +521,39 @@ func (m *Maker) generateGoTableSelect(w io.Writer, table *table) {
 	fmt.Fprintf(w, "row := queryer.QueryRowContext(ctx, %q, %s)\n", sqlSelect, strings.Join(params, ", "))
 	fmt.Fprintf(w, "if err := row.Scan(%s); err != nil {\n return nil, err \n}\n", strings.Join(goFields, ", "))
 	fmt.Fprintf(w, "return &v, nil\n")
+	fmt.Fprintf(w, "}\n\n")
+}
+
+func (m *Maker) generateGoTableSelectAll(w io.Writer, table *table) {
+	fields := make([]string, 0, len(table.columns))
+	goFields := make([]string, 0, len(table.columns))
+	for _, c := range table.columns {
+		fields = append(fields, quote(c.name))
+		goFields = append(goFields, "&v."+c.rawName)
+	}
+	keys := make([]string, 0, len(table.primaryKey.columns))
+	for _, key := range table.primaryKey.columns {
+		keys = append(keys, quote(key))
+	}
+
+	sqlSelect := fmt.Sprintf(
+		"SELECT %s FROM %s ORDER BY %s",
+		strings.Join(fields, ", "),
+		quote(table.name),
+		strings.Join(keys, ", "),
+	)
+	fmt.Fprintf(w, "func SelectAll%[1]s(ctx context.Context, queryer queryer) ([]*%[1]s, error) {\n", table.rawName)
+	fmt.Fprintf(w, "var ret []*%[1]s\n", table.rawName)
+	fmt.Fprintf(w, "rows, err := queryer.QueryContext(ctx, %q)\n", sqlSelect)
+	fmt.Fprintf(w, "if err != nil {\n return nil, err \n}\n")
+	fmt.Fprintf(w, "defer rows.Close()\n")
+	fmt.Fprintf(w, "for rows.Next() {\n")
+	fmt.Fprintf(w, "var v %s\n", table.rawName)
+	fmt.Fprintf(w, "if err := rows.Scan(%s); err != nil {\n return nil, err \n}\n", strings.Join(goFields, ", "))
+	fmt.Fprintf(w, "ret = append(ret, &v)")
+	fmt.Fprintf(w, "}\n")
+	fmt.Fprintf(w, "if err := rows.Err(); err != nil {\n return nil, err \n}\n")
+	fmt.Fprintf(w, "return ret, nil\n")
 	fmt.Fprintf(w, "}\n\n")
 }
 

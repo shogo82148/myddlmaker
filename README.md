@@ -130,6 +130,26 @@ func SelectUser(ctx context.Context, queryer queryer, primaryKeys *User) (*User,
 	return &v, nil
 }
 
+func SelectAllUser(ctx context.Context, queryer queryer) ([]*User, error) {
+	var ret []*User
+	rows, err := queryer.QueryContext(ctx, "SELECT `id`, `name`, `created_at` FROM `user` ORDER BY `id`")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var v Foo1
+		if err := rows.Scan(&v.ID, &v.Name, &v.CreatedAt); err != nil {
+			return nil, err
+		}
+		ret = append(ret, &v)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 func UpdateUser(ctx context.Context, execer execer, values ...*User) error {
 	stmt, err := execer.PrepareContext(ctx, "UPDATE `user` SET `name` = ?, `created_at` = ? WHERE `id` = ?")
 	if err != nil {
