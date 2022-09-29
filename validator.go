@@ -26,6 +26,10 @@ func newValidator(tables []*table) *validator {
 
 func (v *validator) Validate() error {
 	v.createTableMap()
+
+	for _, table := range v.tables {
+		v.validateIndex(table)
+	}
 	return nil
 }
 
@@ -52,7 +56,7 @@ func (v *validator) createTableMap() {
 	for _, table := range v.tables {
 		// validate uniqueness of table names
 		if _, ok := tables[table.name]; ok {
-			v.SaveErrorf("table %q already exists", table.name)
+			v.SaveErrorf("table %q: already exists", table.name)
 			continue
 		}
 
@@ -61,9 +65,9 @@ func (v *validator) createTableMap() {
 		for _, col := range table.columns {
 			name := [2]string{table.name, col.name}
 
-			// // validate uniqueness of column names
+			// validate uniqueness of column names
 			if _, ok := columns[name]; ok {
-				v.SaveErrorf("column %q.%q already exists", table.name, col.name)
+				v.SaveErrorf("table %q, column %q: already exists", table.name, col.name)
 				continue
 			}
 
@@ -72,4 +76,17 @@ func (v *validator) createTableMap() {
 	}
 	v.tableMap = tables
 	v.columnMap = columns
+}
+
+func (v *validator) validateIndex(table *table) {
+	for _, idx := range table.indexes {
+		for _, col := range idx.columns {
+			// check existence of the column in the index
+			name := [2]string{table.name, col}
+			if _, ok := v.columnMap[name]; !ok {
+				v.SaveErrorf("table %q, index %q: column %q not found", table.name, idx.name, col)
+				continue
+			}
+		}
+	}
 }
