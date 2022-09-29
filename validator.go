@@ -188,12 +188,18 @@ func (v *validator) validateForeignKeys() {
 }
 
 func (v *validator) validateFKColumns(table *table, fk *ForeignKey) {
+	passed := true
 	for _, col := range fk.columns {
 		name := [2]string{table.name, col}
 		if _, ok := v.columnMap[name]; !ok {
 			v.SaveErrorf("table %q, foreign key %q: column %q not found", table.name, fk.name, col)
+			passed = false
 			continue
 		}
+	}
+
+	if passed && !v.hasIndex(table, fk.columns) {
+		v.SaveErrorf("table %q, foreign key %q: index required on table %q", table.name, fk.name, table.name)
 	}
 }
 
@@ -204,9 +210,11 @@ func (v *validator) validateFKRef(table *table, fk *ForeignKey) {
 		return
 	}
 
+	passed := true
 	for i, col := range fk.references {
 		refcol, ok := v.columnMap[[2]string{ref.name, col}]
 		if !ok {
+			passed = false
 			v.SaveErrorf("table %q, foreign key %q: referenced column %q.%q not found", table.name, fk.name, ref.name, col)
 			continue
 		}
@@ -228,4 +236,40 @@ func (v *validator) validateFKRef(table *table, fk *ForeignKey) {
 			v.SaveErrorf("table %q, foreign key %q: column %q and referenced column %q.%q collate mismatch", table.name, fk.name, mycol.name, ref.name, col)
 		}
 	}
+
+	if passed && !v.hasIndex(ref, fk.references) {
+		v.SaveErrorf("table %q, foreign key %q: index required on table %q", table.name, fk.name, ref.name)
+	}
+}
+
+func (v *validator) hasIndex(table *table, cols []string) bool {
+	if v.hasPrefix(table.primaryKey.columns, cols) {
+		return true
+	}
+
+	for _, idx := range table.indexes {
+		if v.hasPrefix(idx.columns, cols) {
+			return true
+		}
+	}
+
+	for _, idx := range table.uniqueIndexes {
+		if v.hasPrefix(idx.columns, cols) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (v *validator) hasPrefix(s []string, prefix []string) bool {
+	if len(s) < len(prefix) {
+		return false
+	}
+	for i := range prefix {
+		if s[i] != prefix[i] {
+			return false
+		}
+	}
+	return true
 }

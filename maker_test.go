@@ -554,6 +554,7 @@ func TestMaker_Generate(t *testing.T) {
 	})
 
 	testMakerError(t, []any{&Foo18{}, &Foo19{}}, []string{
+		`table "foo18", foreign key "fk_foo19": index required on table "foo18"`,
 		`table "foo18", foreign key "fk_foo19": column "foo19_id" and referenced column "foo19"."id" type mismatch`,
 	})
 }
