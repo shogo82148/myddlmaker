@@ -129,7 +129,15 @@ func (m *Maker) parse() error {
 		}
 		m.tables[i] = tbl
 	}
+	if err := m.validate(); err != nil {
+		return err
+	}
 	return nil
+}
+
+func (m *Maker) validate() error {
+	v := newValidator(m.tables)
+	return v.Validate()
 }
 
 func (m *Maker) generateTable(w io.Writer, table *table) {
