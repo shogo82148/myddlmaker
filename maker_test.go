@@ -198,6 +198,20 @@ func (*Foo13) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo14 struct {
+	ID int32
+}
+
+func (*Foo14) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("unknown_column")
+}
+
+func (*Foo14) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_name", "unknown_column"),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -418,6 +432,10 @@ func TestMaker_Generate(t *testing.T) {
 
 	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{`table "foo11": already exists`})
 	testMakerError(t, []any{&Foo13{}}, []string{`table "foo13", column "id": already exists`})
+	testMakerError(t, []any{&Foo14{}}, []string{
+		`table "foo14", primary key: column "unknown_column" not found`,
+		`table "foo14", index "idx_name": column "unknown_column" not found`,
+	})
 }
 
 func TestMaker_GenerateGo(t *testing.T) {

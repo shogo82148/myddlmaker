@@ -93,9 +93,18 @@ func (v *validator) createTableMap() {
 }
 
 func (v *validator) validateIndex(table *table) {
+	// check existence of the column in the primary key
+	for _, col := range table.primaryKey.columns {
+		name := [2]string{table.name, col}
+		if _, ok := v.columnMap[name]; !ok {
+			v.SaveErrorf("table %q, primary key: column %q not found", table.name, col)
+			continue
+		}
+	}
+
 	for _, idx := range table.indexes {
+		// check existence of the column in the index
 		for _, col := range idx.columns {
-			// check existence of the column in the index
 			name := [2]string{table.name, col}
 			if _, ok := v.columnMap[name]; !ok {
 				v.SaveErrorf("table %q, index %q: column %q not found", table.name, idx.name, col)
