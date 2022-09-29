@@ -189,6 +189,15 @@ func (*Foo12) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo13 struct {
+	ID               int32 `ddl:"id"`
+	DuplicatedColumn int32 `ddl:"id"`
+}
+
+func (*Foo13) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -408,6 +417,7 @@ func TestMaker_Generate(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{`table "foo11": already exists`})
+	testMakerError(t, []any{&Foo13{}}, []string{`table "foo13", column "id": already exists`})
 }
 
 func TestMaker_GenerateGo(t *testing.T) {
