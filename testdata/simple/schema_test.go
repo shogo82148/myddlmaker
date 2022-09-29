@@ -52,4 +52,12 @@ func TestFoo1(t *testing.T) {
 	if err := InsertFoo1(ctx, db, foo...); err != nil {
 		t.Errorf("failed to insert: %v", err)
 	}
+
+	all, err := SelectAllFoo1(ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1001 {
+		t.Errorf("unexpected count: want %d, got %d", 1001, len(all))
+	}
 }
