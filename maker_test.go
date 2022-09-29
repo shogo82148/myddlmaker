@@ -267,6 +267,45 @@ func (*Foo16) ForeignKeys() []*ForeignKey {
 	}
 }
 
+type Foo17 struct {
+	ID int32
+}
+
+func (*Foo17) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo17) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey("fk_foo17", []string{"unknown_column"}, "unknown_table", []string{"id"}),
+	}
+}
+
+type Foo18 struct {
+	ID      int32
+	Foo19ID int32
+}
+
+func (*Foo18) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo18) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		// Foo18.Foo19ID is int32, but Foo19.ID is int64
+		// it causes a type error
+		NewForeignKey("fk_foo19", []string{"foo19_id"}, "foo19", []string{"id"}),
+	}
+}
+
+type Foo19 struct {
+	ID int64
+}
+
+func (*Foo19) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -507,6 +546,15 @@ func TestMaker_Generate(t *testing.T) {
 
 	testMakerError(t, []any{&Foo16{}}, []string{
 		`table "foo16": duplicated name of foreign key constraint: "fk_duplicated"`,
+	})
+
+	testMakerError(t, []any{&Foo17{}}, []string{
+		`table "foo17", foreign key "fk_foo17": column "unknown_column" not found`,
+		`table "foo17", foreign key "fk_foo17": referenced table "unknown_table" not found`,
+	})
+
+	testMakerError(t, []any{&Foo18{}, &Foo19{}}, []string{
+		`table "foo18", foreign key "fk_foo19": column "foo19_id" and referenced column "foo19"."id" type mismatch`,
 	})
 }
 

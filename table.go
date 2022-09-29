@@ -98,6 +98,9 @@ type column struct {
 	// typ is the type name in SQL queries
 	typ string
 
+	// rawType is the type name in Go codes.
+	rawType reflect.Type
+
 	size int
 
 	// autoIncr marks the column an auto increment column.
@@ -142,9 +145,11 @@ var jsonRawMessageType = reflect.TypeOf(json.RawMessage{})
 
 func newColumn(f reflect.StructField) (*column, error) {
 	var invalidType bool
-	col := &column{}
 
 	typ := indirect(f.Type)
+	col := &column{
+		rawType: typ,
+	}
 	switch typ.Kind() {
 	case reflect.Bool:
 		col.typ = "TINYINT"

@@ -40,6 +40,7 @@ func (v *validator) Validate() error {
 		v.validateIndexName(table)
 	}
 	v.validateConstraints()
+	v.validateForeignKeys()
 
 	if err := v.Err(); err != nil {
 		return err
@@ -173,6 +174,58 @@ func (v *validator) validateConstraints() {
 				continue
 			}
 			seen[fk.name] = struct{}{}
+		}
+	}
+}
+
+func (v *validator) validateForeignKeys() {
+	for _, table := range v.tables {
+		for _, fk := range table.foreignKeys {
+			v.validateFKColumns(table, fk)
+			v.validateFKRef(table, fk)
+		}
+	}
+}
+
+func (v *validator) validateFKColumns(table *table, fk *ForeignKey) {
+	for _, col := range fk.columns {
+		name := [2]string{table.name, col}
+		if _, ok := v.columnMap[name]; !ok {
+			v.SaveErrorf("table %q, foreign key %q: column %q not found", table.name, fk.name, col)
+			continue
+		}
+	}
+}
+
+func (v *validator) validateFKRef(table *table, fk *ForeignKey) {
+	ref, ok := v.tableMap[fk.table]
+	if !ok {
+		v.SaveErrorf("table %q, foreign key %q: referenced table %q not found", table.name, fk.name, fk.table)
+		return
+	}
+
+	for i, col := range fk.references {
+		refcol, ok := v.columnMap[[2]string{ref.name, col}]
+		if !ok {
+			v.SaveErrorf("table %q, foreign key %q: referenced column %q.%q not found", table.name, fk.name, ref.name, col)
+			continue
+		}
+
+		// type check
+		mycol, ok := v.columnMap[[2]string{table.name, fk.columns[i]}]
+		if !ok {
+			// this error is already reported
+			// just ignore it
+			continue
+		}
+		if refcol.typ != mycol.typ || refcol.unsigned != mycol.unsigned || refcol.rawType != mycol.rawType {
+			v.SaveErrorf("table %q, foreign key %q: column %q and referenced column %q.%q type mismatch", table.name, fk.name, mycol.name, ref.name, col)
+		}
+		if refcol.charset != mycol.charset {
+			v.SaveErrorf("table %q, foreign key %q: column %q and referenced column %q.%q character set mismatch", table.name, fk.name, mycol.name, ref.name, col)
+		}
+		if refcol.collate != mycol.collate {
+			v.SaveErrorf("table %q, foreign key %q: column %q and referenced column %q.%q collate mismatch", table.name, fk.name, mycol.name, ref.name, col)
 		}
 	}
 }

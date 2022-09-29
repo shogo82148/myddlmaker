@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 type myInt int64
@@ -100,8 +101,9 @@ func TestTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	opt := cmp.AllowUnexported(table{}, column{}, PrimaryKey{}, Index{}, UniqueIndex{}, ForeignKey{})
-	if diff := cmp.Diff(want, got, opt); diff != "" {
+	opt1 := cmp.AllowUnexported(table{}, column{}, PrimaryKey{}, Index{}, UniqueIndex{}, ForeignKey{})
+	opt2 := cmpopts.IgnoreFields(column{}, "rawType")
+	if diff := cmp.Diff(want, got, opt1, opt2); diff != "" {
 		t.Errorf("table structures are not match (-want/+got):\n%s", diff)
 	}
 }
