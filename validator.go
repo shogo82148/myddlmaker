@@ -37,6 +37,7 @@ func (v *validator) Validate() error {
 
 	for _, table := range v.tables {
 		v.validateIndex(table)
+		v.validateIndexName(table)
 	}
 
 	if err := v.Err(); err != nil {
@@ -70,7 +71,7 @@ func (v *validator) createTableMap() {
 	for _, table := range v.tables {
 		// validate uniqueness of table names
 		if _, ok := tables[table.name]; ok {
-			v.SaveErrorf("table %q: already exists", table.name)
+			v.SaveErrorf("duplicated name of table: %q", table.name)
 			continue
 		}
 
@@ -81,7 +82,7 @@ func (v *validator) createTableMap() {
 
 			// validate uniqueness of column names
 			if _, ok := columns[name]; ok {
-				v.SaveErrorf("table %q, column %q: already exists", table.name, col.name)
+				v.SaveErrorf("table %q: duplicated name of column: %q", table.name, col.name)
 				continue
 			}
 
@@ -122,5 +123,41 @@ func (v *validator) validateIndex(table *table) {
 				continue
 			}
 		}
+	}
+}
+
+func (v *validator) validateIndexName(table *table) {
+	seen := map[string]struct{}{}
+
+	for _, idx := range table.indexes {
+		if _, ok := seen[idx.name]; ok {
+			v.SaveErrorf("table %q: duplicated name of index: %q", table.name, idx.name)
+			continue
+		}
+		seen[idx.name] = struct{}{}
+	}
+
+	for _, idx := range table.uniqueIndexes {
+		if _, ok := seen[idx.name]; ok {
+			v.SaveErrorf("table %q: duplicated name of index: %q", table.name, idx.name)
+			continue
+		}
+		seen[idx.name] = struct{}{}
+	}
+
+	for _, idx := range table.fullTextIndexes {
+		if _, ok := seen[idx.name]; ok {
+			v.SaveErrorf("table %q: duplicated name of index: %q", table.name, idx.name)
+			continue
+		}
+		seen[idx.name] = struct{}{}
+	}
+
+	for _, idx := range table.spatialIndexes {
+		if _, ok := seen[idx.name]; ok {
+			v.SaveErrorf("table %q: duplicated name of index: %q", table.name, idx.name)
+			continue
+		}
+		seen[idx.name] = struct{}{}
 	}
 }

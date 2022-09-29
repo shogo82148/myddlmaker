@@ -218,6 +218,39 @@ func (*Foo14) UniqueIndexes() []*UniqueIndex {
 	}
 }
 
+type Foo15 struct {
+	ID   int32
+	Name string
+}
+
+func (*Foo15) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo15) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_name", "name"),
+	}
+}
+
+func (*Foo15) UniqueIndexes() []*UniqueIndex {
+	return []*UniqueIndex{
+		NewUniqueIndex("idx_name", "name"),
+	}
+}
+
+func (*Foo15) FullTextIndexes() []*FullTextIndex {
+	return []*FullTextIndex{
+		NewFullTextIndex("idx_name", "name").WithParser("ngram").Comment("FULLTEXT INDEX"),
+	}
+}
+
+func (*Foo15) SpatialIndexes() []*SpatialIndex {
+	return []*SpatialIndex{
+		NewSpatialIndex("idx_name", "name").Comment("SPATIAL INDEX"),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -436,12 +469,24 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{`table "foo11": already exists`})
-	testMakerError(t, []any{&Foo13{}}, []string{`table "foo13", column "id": already exists`})
+	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{
+		`duplicated name of table: "foo11"`,
+	})
+
+	testMakerError(t, []any{&Foo13{}}, []string{
+		`table "foo13": duplicated name of column: "id"`,
+	})
+
 	testMakerError(t, []any{&Foo14{}}, []string{
 		`table "foo14", primary key: column "unknown_column" not found`,
 		`table "foo14", index "idx": column "unknown_column" not found`,
 		`table "foo14", unique index "uniq": column "unknown_column" not found`,
+	})
+
+	testMakerError(t, []any{&Foo15{}}, []string{
+		`table "foo15": duplicated name of index: "idx_name"`,
+		`table "foo15": duplicated name of index: "idx_name"`,
+		`table "foo15": duplicated name of index: "idx_name"`,
 	})
 }
 
