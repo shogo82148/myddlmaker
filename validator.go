@@ -5,9 +5,17 @@ import (
 	"log"
 )
 
+type validationError struct {
+	errs []string
+}
+
+func (e *validationError) Error() string {
+	return fmt.Sprintf("myddlmaker: %d error(s) found", len(e.errs))
+}
+
 type validator struct {
-	tables   []*table
-	errCount int
+	tables []*table
+	errs   []string
 
 	// key: table name
 	// value: table
@@ -30,24 +38,30 @@ func (v *validator) Validate() error {
 	for _, table := range v.tables {
 		v.validateIndex(table)
 	}
+
+	if err := v.Err(); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (v *validator) SaveError(msg string) {
-	v.errCount++
+	v.errs = append(v.errs, msg)
 	log.Println(msg)
 }
 
 func (v *validator) SaveErrorf(format string, args ...any) {
-	v.errCount++
+	v.errs = append(v.errs, fmt.Sprintf(format, args...))
 	log.Printf(format, args...)
 }
 
 func (v *validator) Err() error {
-	if v.errCount == 0 {
+	if len(v.errs) == 0 {
 		return nil
 	}
-	return fmt.Errorf("myddlmaker: %d error(s) found", v.errCount)
+	return &validationError{
+		errs: v.errs,
+	}
 }
 
 func (v *validator) createTableMap() {

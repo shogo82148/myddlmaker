@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -176,6 +177,18 @@ func (*Foo11) SpatialIndexes() []*SpatialIndex {
 	}
 }
 
+type Foo12 struct {
+	ID int32
+}
+
+func (*Foo12) Table() string {
+	return "foo11"
+}
+
+func (*Foo12) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -241,6 +254,33 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	// check the ddl syntax
 	if _, err := db.ExecContext(ctx, got); err != nil {
 		t.Errorf("failed to execute %q: %v", got, err)
+	}
+}
+
+func testMakerError(t *testing.T, structs []any, wantErr []string) {
+	t.Helper()
+
+	m, err := New(&Config{})
+	if err != nil {
+		t.Fatalf("failed to initialize Maker: %v", err)
+	}
+
+	m.AddStructs(structs...)
+
+	var buf bytes.Buffer
+	err = m.Generate(&buf)
+	if err == nil {
+		t.Error("want some error, but not")
+		return
+	}
+
+	var errs *validationError
+	if !errors.As(err, &errs) {
+		t.Errorf("unexpected error type: %T", err)
+	}
+
+	if diff := cmp.Diff(wantErr, errs.errs); diff != "" {
+		t.Errorf("unexpected errors (-want/+got):\n%s", diff)
 	}
 }
 
@@ -366,6 +406,8 @@ func TestMaker_Generate(t *testing.T) {
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
+
+	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{`table "foo11": already exists`})
 }
 
 func TestMaker_GenerateGo(t *testing.T) {
