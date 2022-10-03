@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -176,6 +177,135 @@ func (*Foo11) SpatialIndexes() []*SpatialIndex {
 	}
 }
 
+type Foo12 struct {
+	ID int32
+}
+
+func (*Foo12) Table() string {
+	return "foo11"
+}
+
+func (*Foo12) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Foo13 struct {
+	ID               int32 `ddl:"id"`
+	DuplicatedColumn int32 `ddl:"id"`
+}
+
+func (*Foo13) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Foo14 struct {
+	ID int32
+}
+
+func (*Foo14) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("unknown_column")
+}
+
+func (*Foo14) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx", "unknown_column"),
+	}
+}
+
+func (*Foo14) UniqueIndexes() []*UniqueIndex {
+	return []*UniqueIndex{
+		NewUniqueIndex("uniq", "unknown_column"),
+	}
+}
+
+type Foo15 struct {
+	ID   int32
+	Name string
+}
+
+func (*Foo15) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo15) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_name", "name"),
+	}
+}
+
+func (*Foo15) UniqueIndexes() []*UniqueIndex {
+	return []*UniqueIndex{
+		NewUniqueIndex("idx_name", "name"),
+	}
+}
+
+func (*Foo15) FullTextIndexes() []*FullTextIndex {
+	return []*FullTextIndex{
+		NewFullTextIndex("idx_name", "name").WithParser("ngram").Comment("FULLTEXT INDEX"),
+	}
+}
+
+func (*Foo15) SpatialIndexes() []*SpatialIndex {
+	return []*SpatialIndex{
+		NewSpatialIndex("idx_name", "name").Comment("SPATIAL INDEX"),
+	}
+}
+
+type Foo16 struct {
+	ID   int32
+	Name string
+}
+
+func (*Foo16) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo16) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey("fk_duplicated", []string{"id"}, "foo16", []string{"id"}),
+		NewForeignKey("fk_duplicated", []string{"id"}, "foo16", []string{"id"}),
+	}
+}
+
+type Foo17 struct {
+	ID int32
+}
+
+func (*Foo17) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo17) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey("fk_foo17", []string{"unknown_column"}, "unknown_table", []string{"id"}),
+	}
+}
+
+type Foo18 struct {
+	ID      int32
+	Foo19ID int32
+}
+
+func (*Foo18) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo18) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		// Foo18.Foo19ID is int32, but Foo19.ID is int64
+		// it causes a type error
+		NewForeignKey("fk_foo19", []string{"foo19_id"}, "foo19", []string{"id"}),
+	}
+}
+
+type Foo19 struct {
+	ID int64
+}
+
+func (*Foo19) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -241,6 +371,33 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	// check the ddl syntax
 	if _, err := db.ExecContext(ctx, got); err != nil {
 		t.Errorf("failed to execute %q: %v", got, err)
+	}
+}
+
+func testMakerError(t *testing.T, structs []any, wantErr []string) {
+	t.Helper()
+
+	m, err := New(&Config{})
+	if err != nil {
+		t.Fatalf("failed to initialize Maker: %v", err)
+	}
+
+	m.AddStructs(structs...)
+
+	var buf bytes.Buffer
+	err = m.Generate(&buf)
+	if err == nil {
+		t.Error("want some error, but not")
+		return
+	}
+
+	var errs *validationError
+	if !errors.As(err, &errs) {
+		t.Errorf("unexpected error type: %T", err)
+	}
+
+	if diff := cmp.Diff(wantErr, errs.errs); diff != "" {
+		t.Errorf("unexpected errors (-want/+got):\n%s", diff)
 	}
 }
 
@@ -366,6 +523,40 @@ func TestMaker_Generate(t *testing.T) {
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
+
+	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{
+		`duplicated name of table: "foo11"`,
+	})
+
+	testMakerError(t, []any{&Foo13{}}, []string{
+		`table "foo13": duplicated name of column: "id"`,
+	})
+
+	testMakerError(t, []any{&Foo14{}}, []string{
+		`table "foo14", primary key: column "unknown_column" not found`,
+		`table "foo14", index "idx": column "unknown_column" not found`,
+		`table "foo14", unique index "uniq": column "unknown_column" not found`,
+	})
+
+	testMakerError(t, []any{&Foo15{}}, []string{
+		`table "foo15": duplicated name of index: "idx_name"`,
+		`table "foo15": duplicated name of index: "idx_name"`,
+		`table "foo15": duplicated name of index: "idx_name"`,
+	})
+
+	testMakerError(t, []any{&Foo16{}}, []string{
+		`table "foo16": duplicated name of foreign key constraint: "fk_duplicated"`,
+	})
+
+	testMakerError(t, []any{&Foo17{}}, []string{
+		`table "foo17", foreign key "fk_foo17": column "unknown_column" not found`,
+		`table "foo17", foreign key "fk_foo17": referenced table "unknown_table" not found`,
+	})
+
+	testMakerError(t, []any{&Foo18{}, &Foo19{}}, []string{
+		`table "foo18", foreign key "fk_foo19": index required on table "foo18"`,
+		`table "foo18", foreign key "fk_foo19": column "foo19_id" and referenced column "foo19"."id" type mismatch`,
+	})
 }
 
 func TestMaker_GenerateGo(t *testing.T) {
