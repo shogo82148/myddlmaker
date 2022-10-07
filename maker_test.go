@@ -311,7 +311,13 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	m, err := New(&Config{})
+	m, err := New(&Config{
+		DB: &DBConfig{
+			Engine:  "InnoDB",
+			Charset: "utf8mb4",
+			Collate: "utf8mb4_bin",
+		},
+	})
 	if err != nil {
 		t.Fatalf("failed to initialize Maker: %v", err)
 	}
@@ -377,7 +383,13 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 func testMakerError(t *testing.T, structs []any, wantErr []string) {
 	t.Helper()
 
-	m, err := New(&Config{})
+	m, err := New(&Config{
+		DB: &DBConfig{
+			Engine:  "InnoDB",
+			Charset: "utf8mb4",
+			Collate: "utf8mb4_bin",
+		},
+	})
 	if err != nil {
 		t.Fatalf("failed to initialize Maker: %v", err)
 	}
