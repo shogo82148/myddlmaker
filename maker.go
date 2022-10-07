@@ -32,15 +32,12 @@ type Config struct {
 
 type DBConfig struct {
 	// Engine is the default database engine for creating tables.
-	// If it is empty, "InnoDB" is used.
 	Engine string
 
 	// Charset is the default character set for creating tables.
-	// If it is empty, "utf8mb4" is used.
 	Charset string
 
 	// Collate is the default character collate for creating tables.
-	// If it is empty, "utf8mb4_bin" is used.
 	Collate string
 }
 
@@ -60,9 +57,9 @@ func New(config *Config) (*Maker, error) {
 	}
 	c := &Config{
 		DB: &DBConfig{
-			Engine:  withDefault(db.Engine, "InnoDB"),
-			Charset: withDefault(db.Charset, "utf8mb4"),
-			Collate: withDefault(db.Collate, "utf8mb4_bin"),
+			Engine:  db.Engine,
+			Charset: db.Charset,
+			Collate: db.Collate,
 		},
 		OutFilePath:   withDefault(config.OutFilePath, "schema.sql"),
 		OutGoFilePath: withDefault(config.OutGoFilePath, "schema_gen.go"),
