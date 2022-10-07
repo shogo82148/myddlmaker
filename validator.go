@@ -14,6 +14,8 @@ func (e *validationError) Error() string {
 }
 
 type validator struct {
+	SkipValidationFKIndex bool
+
 	tables []*table
 	errs   []string
 
@@ -198,8 +200,10 @@ func (v *validator) validateFKColumns(table *table, fk *ForeignKey) {
 		}
 	}
 
-	if passed && !v.hasIndex(table, fk.columns) {
-		v.SaveErrorf("table %q, foreign key %q: index required on table %q", table.name, fk.name, table.name)
+	if !v.SkipValidationFKIndex {
+		if passed && !v.hasIndex(table, fk.columns) {
+			v.SaveErrorf("table %q, foreign key %q: index required on table %q", table.name, fk.name, table.name)
+		}
 	}
 }
 
@@ -237,8 +241,10 @@ func (v *validator) validateFKRef(table *table, fk *ForeignKey) {
 		}
 	}
 
-	if passed && !v.hasIndex(ref, fk.references) {
-		v.SaveErrorf("table %q, foreign key %q: index required on table %q", table.name, fk.name, ref.name)
+	if !v.SkipValidationFKIndex {
+		if passed && !v.hasIndex(ref, fk.references) {
+			v.SaveErrorf("table %q, foreign key %q: index required on table %q", table.name, fk.name, ref.name)
+		}
 	}
 }
 
