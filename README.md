@@ -47,7 +47,13 @@ import (
 
 func main() {
 	// create a new DDL maker.
-	m, err := myddlmaker.New(&myddlmaker.Config{})
+	m, err := myddlmaker.New(&myddlmaker.Config{
+		DB: &DBConfig{
+			Engine:  "InnoDB",
+			Charset: "utf8mb4",
+			Collate: "utf8mb4_bin",
+		},
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
