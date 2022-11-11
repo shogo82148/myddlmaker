@@ -376,7 +376,6 @@ func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 	if err != nil {
 		t.Fatalf("failed to create database %q: %v", dbName, err)
 	}
-	defer db0.ExecContext(ctx, "DROP DATABASE "+dbName)
 
 	cfg.DBName = dbName
 	cfg.MultiStatements = true
@@ -385,6 +384,7 @@ func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 		t.Fatalf("failed to open db: %v", err)
 	}
 	t.Cleanup(func() {
+		db0.ExecContext(ctx, "DROP DATABASE "+dbName)
 		db.Close()
 	})
 	return db, true
