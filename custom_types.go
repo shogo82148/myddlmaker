@@ -13,13 +13,11 @@ import (
 var _ driver.Valuer = (*JSON[int])(nil)
 var _ sql.Scanner = (*JSON[int])(nil)
 
-type JSON[T any] struct {
-	V T
-}
+type JSON[T any] [1]T
 
 // Value implements [database/sql/driver.Valuer] interface.
 func (v *JSON[T]) Value() (driver.Value, error) {
-	return json.Marshal(v.V)
+	return json.Marshal(v[0])
 }
 
 // Scan implements [database/sql.Scanner] interface.
@@ -35,5 +33,5 @@ func (v *JSON[T]) Scan(src any) error {
 	}
 
 	dec := json.NewDecoder(r)
-	return dec.Decode(&v.V)
+	return dec.Decode(&v[0])
 }
