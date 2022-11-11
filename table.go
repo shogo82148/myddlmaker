@@ -240,7 +240,7 @@ func newColumn(f reflect.StructField) (*column, error) {
 	col.name = name
 	for len(remain) > 0 {
 		var opt string
-		opt, remain, _ = strings.Cut(remain, ",")
+		opt, remain, _ = cutComma(remain)
 		switch opt {
 		case "null":
 			col.null = true
@@ -264,16 +264,6 @@ func newColumn(f reflect.StructField) (*column, error) {
 				}
 				col.srid = int(v)
 			case "type":
-				if strings.HasPrefix(val, "DECIMAL(") && !strings.HasSuffix(val, ")") {
-					var comb string
-					comb, remain, _ = strings.Cut(remain, ",")
-					val = val + "," + comb
-				}
-				if strings.HasPrefix(val, "NUMERIC(") && !strings.HasSuffix(val, ")") {
-					var comb string
-					comb, remain, _ = strings.Cut(remain, ",")
-					val = val + "," + comb
-				}
 				col.typ = val
 				col.unsigned = false
 				col.size = 0
@@ -310,4 +300,24 @@ func indirect(typ reflect.Type) reflect.Type {
 		seen[typ] = struct{}{}
 	}
 	return typ
+}
+
+func cutComma(s string) (before string, after string, found bool) {
+	var cnt int
+	for i, b := range s {
+		switch b {
+		case '(':
+			cnt++
+		case ')':
+			cnt--
+			if cnt < 0 {
+				cnt = 0
+			}
+		case ',':
+			if cnt == 0 {
+				return s[:i], s[i+1:], true
+			}
+		}
+	}
+	return s, "", false
 }
