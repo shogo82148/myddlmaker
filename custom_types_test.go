@@ -36,7 +36,7 @@ func TestJSON(t *testing.T) {
 	}
 
 	// get the JSON value
-	var obj1 JSON[Object]
+	var obj1 Object
 	row := db.QueryRowContext(ctx, "SELECT `object` FROM `foo` WHERE `id` = ?", 1)
 	if err := row.Scan(&obj1); err != nil {
 		t.Fatal(err)
@@ -44,5 +44,29 @@ func TestJSON(t *testing.T) {
 
 	if !reflect.DeepEqual(obj0, obj1) {
 		t.Errorf("result not match: got %#v, want %#v", obj0, obj1)
+	}
+}
+
+func TestJSONScan(t *testing.T) {
+	type Object = JSON[struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+	}]
+	data := `{"a":"string value","b":42}`
+
+	var obj0 Object
+	if err := obj0.Scan(data); err != nil {
+		t.Fatal(err)
+	}
+	if obj0[0].A != "string value" || obj0[0].B != 42 {
+		t.Errorf("unexpected result: %#v, want %s", obj0, data)
+	}
+
+	var obj1 Object
+	if err := obj1.Scan([]byte(data)); err != nil {
+		t.Fatal(err)
+	}
+	if obj1[0].A != "string value" || obj1[0].B != 42 {
+		t.Errorf("unexpected result: %#v, want %s", obj0, data)
 	}
 }
