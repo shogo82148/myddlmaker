@@ -34,8 +34,10 @@ type FooBar struct {
 	// custom type
 	MyInt      myInt
 	CustomType customType `ddl:",type=TIMESTAMP"`
-	Decimal    float64    `ddl:",type=DECIMAL(9,6)"`
-	Numeric    float64    `ddl:",type=NUMERIC(9,6)"`
+
+	// cutom type that contains comma
+	Decimal float64 `ddl:",type=DECIMAL(9,6)"`
+	Numeric float64 `ddl:",type=NUMERIC(9,6)"`
 
 	// pointers
 	PInt8  *int8
