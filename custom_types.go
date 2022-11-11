@@ -16,7 +16,7 @@ var _ sql.Scanner = (*JSON[int])(nil)
 type JSON[T any] [1]T
 
 // Value implements [database/sql/driver.Valuer] interface.
-func (v *JSON[T]) Value() (driver.Value, error) {
+func (v JSON[T]) Value() (driver.Value, error) {
 	return json.Marshal(v[0])
 }
 
