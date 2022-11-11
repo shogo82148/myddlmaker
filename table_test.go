@@ -37,9 +37,11 @@ type FooBar struct {
 	Decimal    float64    `ddl:",type=DECIMAL"`
 	Numeric    float64    `ddl:",type=NUMERIC"`
 
-	// cutom type that contains comma
-	DecimalWithExactPrecision float64 `ddl:",type=DECIMAL(9,6)"`
-	NumericWithExactPrecision float64 `ddl:",type=NUMERIC(9,6)"`
+	// custom type that contains comma
+	DecimalWithPrecisionAndScale float64 `ddl:",type=DECIMAL(9,6)"`
+	NumericWithPrecisionAndScale float64 `ddl:",type=NUMERIC(9,6)"`
+	DecimalWithPrecision         float64 `ddl:",type=DECIMAL(9)"`
+	NumericWithPrecision         float64 `ddl:",type=NUMERIC(9)"`
 
 	// pointers
 	PInt8  *int8
@@ -89,8 +91,10 @@ func TestTable(t *testing.T) {
 			{name: "custom_type", rawName: "CustomType", typ: "TIMESTAMP"},
 			{name: "decimal", rawName: "Decimal", typ: "DECIMAL"},
 			{name: "numeric", rawName: "Numeric", typ: "NUMERIC"},
-			{name: "decimal_with_exact_precision", rawName: "DecimalWithExactPrecision", typ: "DECIMAL(9,6)"},
-			{name: "numeric_with_exact_precision", rawName: "NumericWithExactPrecision", typ: "NUMERIC(9,6)"},
+			{name: "decimal_with_precision_and_scale", rawName: "DecimalWithPrecisionAndScale", typ: "DECIMAL(9,6)"},
+			{name: "numeric_with_precision_and_scale", rawName: "NumericWithPrecisionAndScale", typ: "NUMERIC(9,6)"},
+			{name: "decimal_with_precision", rawName: "DecimalWithPrecision", typ: "DECIMAL(9)"},
+			{name: "numeric_with_precision", rawName: "NumericWithPrecision", typ: "NUMERIC(9)"},
 			{name: "p_int8", rawName: "PInt8", typ: "TINYINT"},
 			{name: "p_p_int8", rawName: "PPInt8", typ: "TINYINT"},
 			{name: "fuga", rawName: "Hoge", typ: "INTEGER"},
@@ -128,5 +132,82 @@ func TestTable_UnknownType(t *testing.T) {
 	_, err := newTable(&FooBar{})
 	if err == nil {
 		t.Error("want some errors, got nil")
+	}
+}
+
+func TestCutComma(t *testing.T) {
+	tests := []struct {
+		in     string
+		before string
+		after  string
+		found  bool
+	}{
+		{
+			in:     "6,type=INTEGER",
+			before: "6",
+			after:  "type=INTEGER",
+			found:  true,
+		},
+		{
+			in:     "6,type=INTEGER,auto",
+			before: "6",
+			after:  "type=INTEGER,auto",
+			found:  true,
+		},
+		{
+			in:     "DECIMAL(9,6)",
+			before: "DECIMAL(9,6)",
+			after:  "",
+			found:  false,
+		},
+		{
+			in:     "DECIMAL(9,6),null",
+			before: "DECIMAL(9,6)",
+			after:  "null",
+			found:  true,
+		},
+		{
+			in:     "DECIMAL((9),(6))",
+			before: "DECIMAL((9),(6))",
+			after:  "",
+			found:  false,
+		},
+		{
+			in:     "DECIMAL((9),(6)),null",
+			before: "DECIMAL((9),(6))",
+			after:  "null",
+			found:  true,
+		},
+		{
+			in:     "null",
+			before: "null",
+			after:  "",
+			found:  false,
+		},
+		{
+			in:     "DECIMAL(9,6),null",
+			before: "DECIMAL(9,6)",
+			after:  "null",
+			found:  true,
+		},
+		{
+			in:     "DECIMAL(9,6)),null",
+			before: "DECIMAL(9,6))",
+			after:  "null",
+			found:  true,
+		},
+	}
+
+	for i, tt := range tests {
+		before, after, found := cutComma(tt.in)
+		if before != tt.before {
+			t.Errorf("%d: unexpected before: got %q, want %q", i, before, tt.before)
+		}
+		if after != tt.after {
+			t.Errorf("%d: unexpected after: got %q, want %q", i, after, tt.after)
+		}
+		if found != tt.found {
+			t.Errorf("%d: unexpected found: got %t, want %t", i, found, tt.found)
+		}
 	}
 }
