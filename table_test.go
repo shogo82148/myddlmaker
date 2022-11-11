@@ -34,6 +34,8 @@ type FooBar struct {
 	// custom type
 	MyInt      myInt
 	CustomType customType `ddl:",type=TIMESTAMP"`
+	Decimal    float64    `ddl:",type=DECIMAL(9,6)"`
+	Numeric    float64    `ddl:",type=NUMERIC(9,6)"`
 
 	// pointers
 	PInt8  *int8
@@ -81,6 +83,8 @@ func TestTable(t *testing.T) {
 			{name: "json_value", rawName: "JSONValue", typ: "JSON"},
 			{name: "my_int", rawName: "MyInt", typ: "BIGINT"},
 			{name: "custom_type", rawName: "CustomType", typ: "TIMESTAMP"},
+			{name: "decimal", rawName: "Decimal", typ: "DECIMAL(9,6)"},
+			{name: "numeric", rawName: "Numeric", typ: "NUMERIC(9,6)"},
 			{name: "p_int8", rawName: "PInt8", typ: "TINYINT"},
 			{name: "p_p_int8", rawName: "PPInt8", typ: "TINYINT"},
 			{name: "fuga", rawName: "Hoge", typ: "INTEGER"},
