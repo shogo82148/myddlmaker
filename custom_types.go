@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var _ driver.Valuer = (*JSON[int])(nil)
+var _ driver.Valuer = JSON[int]{}
 var _ sql.Scanner = (*JSON[int])(nil)
 
 type JSON[T any] [1]T
