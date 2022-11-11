@@ -334,12 +334,24 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 		t.Errorf("ddl is not match: (-want/+got)\n%s", diff)
 	}
 
+	db, ok := setupDatabase(ctx, t)
+	if !ok {
+		return
+	}
+
+	// check the ddl syntax
+	if _, err := db.ExecContext(ctx, got); err != nil {
+		t.Errorf("failed to execute %q: %v", got, err)
+	}
+}
+
+func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 	// check the ddl syntax with MySQL Server
 	user := os.Getenv("MYSQL_TEST_USER")
 	pass := os.Getenv("MYSQL_TEST_PASS")
 	addr := os.Getenv("MYSQL_TEST_ADDR")
 	if user == "" || pass == "" || addr == "" {
-		return
+		return nil, false
 	}
 
 	// connect to the server
@@ -368,16 +380,14 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 
 	cfg.DBName = dbName
 	cfg.MultiStatements = true
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		t.Fatalf("failed to open db: %v", err)
 	}
-	defer db.Close()
-
-	// check the ddl syntax
-	if _, err := db.ExecContext(ctx, got); err != nil {
-		t.Errorf("failed to execute %q: %v", got, err)
-	}
+	t.Cleanup(func() {
+		db.Close()
+	})
+	return db, true
 }
 
 func testMakerError(t *testing.T, structs []any, wantErr []string) {
