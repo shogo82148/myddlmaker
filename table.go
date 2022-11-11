@@ -264,6 +264,16 @@ func newColumn(f reflect.StructField) (*column, error) {
 				}
 				col.srid = int(v)
 			case "type":
+				if strings.HasPrefix(val, "DECIMAL(") && !strings.HasSuffix(val, ")") {
+					var comb string
+					comb, remain, _ = strings.Cut(remain, ",")
+					val = val + "," + comb
+				}
+				if strings.HasPrefix(val, "NUMERIC(") && !strings.HasSuffix(val, ")") {
+					var comb string
+					comb, remain, _ = strings.Cut(remain, ",")
+					val = val + "," + comb
+				}
 				col.typ = val
 				col.unsigned = false
 				col.size = 0
