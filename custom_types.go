@@ -13,6 +13,8 @@ import (
 var _ driver.Valuer = JSON[int]{}
 var _ sql.Scanner = (*JSON[int])(nil)
 
+// JSON[T] represents a MySQL JSON type tied to Go types.
+// It is EXPERIMENTAL feature.
 type JSON[T any] [1]T
 
 // Get returns the value of v.
