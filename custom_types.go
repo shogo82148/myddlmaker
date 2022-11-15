@@ -35,3 +35,12 @@ func (v *JSON[T]) Scan(src any) error {
 	dec := json.NewDecoder(r)
 	return dec.Decode(&v[0])
 }
+
+type jsonMarker interface {
+	jsonMarker()
+}
+
+// jsonMarker is a marker for the reflect package.
+// On Go 1.19, the reflect package can't handle generic types correctly.
+// However, it can handle a interface implemented by generic types.
+func (v JSON[T]) jsonMarker() { /* nothing to do */ }

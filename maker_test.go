@@ -306,6 +306,18 @@ func (*Foo19) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo20 struct {
+	ID   int32 `ddl:",auto"`
+	JSON JSON[struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+	}]
+}
+
+func (*Foo20) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -542,6 +554,16 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `point` GEOMETRY NOT NULL,\n"+
 		"    SPATIAL INDEX `idx_point` (`point`) COMMENT 'SPATIAL INDEX',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// JSON
+	testMaker(t, []any{&Foo20{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo20`;\n\n"+
+		"CREATE TABLE `foo20` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    `json` JSON NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
