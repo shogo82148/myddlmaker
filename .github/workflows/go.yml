@@ -11,8 +11,8 @@ env:
   MYSQL_TEST_ADDR: 127.0.0.1:3306
 
 jobs:
-  build:
-    name: Build
+  test:
+    name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
