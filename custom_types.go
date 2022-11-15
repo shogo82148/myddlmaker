@@ -15,6 +15,16 @@ var _ sql.Scanner = (*JSON[int])(nil)
 
 type JSON[T any] [1]T
 
+// Get returns the value of v.
+func (v JSON[T]) Get() T {
+	return v[0]
+}
+
+// Set sets v = u.
+func (v *JSON[T]) Set(u T) {
+	v[0] = u
+}
+
 // Value implements [database/sql/driver.Valuer] interface.
 func (v JSON[T]) Value() (driver.Value, error) {
 	return json.Marshal(v[0])
