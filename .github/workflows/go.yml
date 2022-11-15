@@ -11,8 +11,8 @@ env:
   MYSQL_TEST_ADDR: 127.0.0.1:3306
 
 jobs:
-  build:
-    name: Build
+  test:
+    name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -44,3 +44,20 @@ jobs:
 
       - name: Test
         run: make test
+
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
+          flag-name: Go-${{ matrix.go }}-OS-${{ matrix.os }}
+          parallel: true
+
+  # notifies that all test jobs are finished.
+  finish:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
