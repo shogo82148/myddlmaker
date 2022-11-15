@@ -306,6 +306,18 @@ func (*Foo19) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo20 struct {
+	ID   int32 `ddl:",auto"`
+	JSON JSON[struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+	}]
+}
+
+func (*Foo20) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -334,12 +346,24 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 		t.Errorf("ddl is not match: (-want/+got)\n%s", diff)
 	}
 
+	db, ok := setupDatabase(ctx, t)
+	if !ok {
+		return
+	}
+
+	// check the ddl syntax
+	if _, err := db.ExecContext(ctx, got); err != nil {
+		t.Errorf("failed to execute %q: %v", got, err)
+	}
+}
+
+func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 	// check the ddl syntax with MySQL Server
 	user := os.Getenv("MYSQL_TEST_USER")
 	pass := os.Getenv("MYSQL_TEST_PASS")
 	addr := os.Getenv("MYSQL_TEST_ADDR")
 	if user == "" || pass == "" || addr == "" {
-		return
+		return nil, false
 	}
 
 	// connect to the server
@@ -364,20 +388,18 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	if err != nil {
 		t.Fatalf("failed to create database %q: %v", dbName, err)
 	}
-	defer db0.ExecContext(ctx, "DROP DATABASE "+dbName)
 
 	cfg.DBName = dbName
 	cfg.MultiStatements = true
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		t.Fatalf("failed to open db: %v", err)
 	}
-	defer db.Close()
-
-	// check the ddl syntax
-	if _, err := db.ExecContext(ctx, got); err != nil {
-		t.Errorf("failed to execute %q: %v", got, err)
-	}
+	t.Cleanup(func() {
+		db0.ExecContext(ctx, "DROP DATABASE "+dbName)
+		db.Close()
+	})
+	return db, true
 }
 
 func testMakerError(t *testing.T, structs []any, wantErr []string) {
@@ -532,6 +554,16 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `point` GEOMETRY NOT NULL,\n"+
 		"    SPATIAL INDEX `idx_point` (`point`) COMMENT 'SPATIAL INDEX',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// JSON
+	testMaker(t, []any{&Foo20{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo20`;\n\n"+
+		"CREATE TABLE `foo20` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    `json` JSON NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")

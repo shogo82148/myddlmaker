@@ -142,6 +142,7 @@ var nullInt16Type = reflect.TypeOf(sql.NullInt16{})
 var nullInt32Type = reflect.TypeOf(sql.NullInt32{})
 var nullInt64Type = reflect.TypeOf(sql.NullInt64{})
 var jsonRawMessageType = reflect.TypeOf(json.RawMessage{})
+var myddlmakerJSON = reflect.TypeOf((*jsonMarker)(nil)).Elem()
 
 func newColumn(f reflect.StructField) (*column, error) {
 	var invalidType bool
@@ -149,6 +150,10 @@ func newColumn(f reflect.StructField) (*column, error) {
 	typ := indirect(f.Type)
 	col := &column{
 		rawType: typ,
+	}
+
+	if typ.Implements(myddlmakerJSON) {
+		col.typ = "JSON"
 	}
 	switch typ.Kind() {
 	case reflect.Bool:
@@ -227,6 +232,11 @@ func newColumn(f reflect.StructField) (*column, error) {
 		}
 	default:
 		invalidType = true
+	}
+
+	if typ.Implements(myddlmakerJSON) {
+		col.typ = "JSON"
+		invalidType = false
 	}
 
 	// parse the tag of the field.
