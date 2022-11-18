@@ -1,0 +1,11 @@
+{
+    "go.testEnvVars": {
+        "MYSQL_TEST_USER": "root",
+        "MYSQL_TEST_PASS": "my-secret-pw",
+        "MYSQL_TEST_ADDR": "127.0.0.1:3306",
+    },
+    "cSpell.words": [
+        "Initialisms",
+        "myddlmaker"
+    ]
+}
