@@ -462,7 +462,7 @@ func TestMaker_Generate(t *testing.T) {
 		"CREATE TABLE `foo5` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `name` VARCHAR(191) NOT NULL,\n"+
-		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,\n"+
+		"    CONSTRAINT `fk_foo1` FOREIGN KEY (`id`) REFERENCES `foo1` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
