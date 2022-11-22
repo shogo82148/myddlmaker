@@ -318,6 +318,74 @@ func (*Foo20) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Fkp1 struct {
+	ID string
+}
+
+func (*Fkp1) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc1 struct {
+	ID       string
+	ParentID sql.NullString `ddl:",null"`
+}
+
+func (*Fkc1) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc1) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc1) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc1_parent_id",
+			[]string{"parent_id"},
+			"fkp1",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp2 struct {
+	ID int64
+}
+
+func (*Fkp2) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc2 struct {
+	ID       string
+	ParentID sql.NullInt64 `ddl:",null"`
+}
+
+func (*Fkc2) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc2) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc2) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc2_parent_id",
+			[]string{"parent_id"},
+			"fkp2",
+			[]string{"id"},
+		),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -568,6 +636,38 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// NULL foreign key
+	testMaker(t, []any{&Fkp1{}, &Fkc1{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp1`;\n\n"+
+		"CREATE TABLE `fkp1` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc1`;\n\n"+
+		"CREATE TABLE `fkc1` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` VARCHAR(191) NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc1_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp1` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	testMaker(t, []any{&Fkp2{}, &Fkc2{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp2`;\n\n"+
+		"CREATE TABLE `fkp2` (\n"+
+		"    `id` BIGINT NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc2`;\n\n"+
+		"CREATE TABLE `fkc2` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` BIGINT NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc2_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp2` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
 	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{
 		`duplicated name of table: "foo11"`,
 	})
