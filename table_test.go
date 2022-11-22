@@ -12,6 +12,10 @@ import (
 
 type myInt int64
 type customType struct{}
+type nullUint32 struct {
+	u32   uint32
+	valid bool
+}
 
 type FooBar struct {
 	// primitive types
@@ -42,6 +46,9 @@ type FooBar struct {
 	NumericWithPrecisionAndScale float64 `ddl:",type=NUMERIC(9,6)"`
 	DecimalWithPrecision         float64 `ddl:",type=DECIMAL(9)"`
 	NumericWithPrecision         float64 `ddl:",type=NUMERIC(9)"`
+
+	// custom type that is unsigned integer
+	NullUint32 nullUint32 `ddl:",type=INTEGER,unsigned,null"`
 
 	// pointers
 	PInt8  *int8
@@ -95,6 +102,7 @@ func TestTable(t *testing.T) {
 			{name: "numeric_with_precision_and_scale", rawName: "NumericWithPrecisionAndScale", typ: "NUMERIC(9,6)"},
 			{name: "decimal_with_precision", rawName: "DecimalWithPrecision", typ: "DECIMAL(9)"},
 			{name: "numeric_with_precision", rawName: "NumericWithPrecision", typ: "NUMERIC(9)"},
+			{name: "null_uint32", rawName: "NullUint32", typ: "INTEGER", unsigned: true, null: true},
 			{name: "p_int8", rawName: "PInt8", typ: "TINYINT"},
 			{name: "p_p_int8", rawName: "PPInt8", typ: "TINYINT"},
 			{name: "fuga", rawName: "Hoge", typ: "INTEGER"},
