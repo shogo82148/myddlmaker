@@ -222,6 +222,7 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 |       `null`        |        `NULL` (default: `NOT NULL`)         |
 |       `auto`        |              `AUTO INCREMENT`               |
 |     `invisible`     |                 `INVISIBLE`                 |
+|     `unsigned`      |                  `UNSIGNED`                 |
 |    `size=<size>`    | `VARCHAR(<size>)`, `DATETIME(<size>)`, etc. |
 |    `type=<type>`    |             override field type             |
 |    `srid=<srid>`    |                override SRID                |
