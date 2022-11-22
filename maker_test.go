@@ -573,13 +573,9 @@ func (*Fkp8) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
-type NullUint32 struct {
-	Uint32 uint32
-	Valid  bool
-}
 type Fkc8 struct {
 	ID       string
-	ParentID NullUint32 `ddl:",type=INTEGER UNSIGNED,null"`
+	ParentID nullUint32 `ddl:",type=INTEGER,unsigned,null"`
 }
 
 func (*Fkc8) PrimaryKey() *PrimaryKey {
@@ -979,33 +975,18 @@ func TestMaker_Generate(t *testing.T) {
 	testMaker(t, []any{&Fkp8{}, &Fkc8{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp8`;\n\n"+
 		"CREATE TABLE `fkp8` (\n"+
-		"    `id` INTERGER UNSIGNED NOT NULL,\n"+
+		"    `id` INTEGER UNSIGNED NOT NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
 		"DROP TABLE IF EXISTS `fkc8`;\n\n"+
 		"CREATE TABLE `fkc8` (\n"+
 		"    `id` VARCHAR(191) NOT NULL,\n"+
-		"    `parent_id` INTERGER UNSIGNED NULL,\n"+
+		"    `parent_id` INTEGER UNSIGNED NULL,\n"+
 		"    INDEX `idx_parent_id` (`parent_id`),\n"+
 		"    CONSTRAINT `fk_fkc8_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp8` (`id`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
-
-	// testMaker(t, []any{&Fkp2{}, &Fkc2{}}, "SET foreign_key_checks=0;\n\n"+
-	// 	"DROP TABLE IF EXISTS `fkp2`;\n\n"+
-	// 	"CREATE TABLE `fkp2` (\n"+
-	// 	"    `id` INTEGER UNSIGNED NOT NULL,\n"+
-	// 	"    PRIMARY KEY (`id`)\n"+
-	// 	") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
-	// 	"DROP TABLE IF EXISTS `fkc1`;\n\n"+
-	// 	"CREATE TABLE `fkc1` (\n"+
-	// 	"    `id` VARCHAR(191) NOT NULL,\n"+
-	// 	"    `parent_id` VARCHAR(191) NULL,\n"+
-	// 	"    CONSTRAINT `fk_fkc2_parent_id` FOREIGN KEY (`id`) REFERENCES `fkp2` (`id`),\n"+
-	// 	"    PRIMARY KEY (`id`)\n"+
-	// 	") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
-	// 	"SET foreign_key_checks=1;\n")
 
 	testMakerError(t, []any{&Foo11{}, &Foo12{}}, []string{
 		`duplicated name of table: "foo11"`,
