@@ -318,6 +318,15 @@ func (*Foo20) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo21 struct {
+	ID       int32
+	ParentID nullUint32 `ddl:",type=INTEGER,unsigned,null"`
+}
+
+func (*Foo21) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -840,6 +849,16 @@ func TestMaker_Generate(t *testing.T) {
 		"CREATE TABLE `foo20` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `json` JSON NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// unsigned integer specified in struct tag
+	testMaker(t, []any{&Foo21{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo21`;\n\n"+
+		"CREATE TABLE `foo21` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `parent_id` INTEGER UNSIGNED NULL,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
