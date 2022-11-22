@@ -230,7 +230,7 @@ func (v *validator) validateFKRef(table *table, fk *ForeignKey) {
 			// just ignore it
 			continue
 		}
-		if refcol.typ != mycol.typ || refcol.unsigned != mycol.unsigned || refcol.rawType != mycol.rawType {
+		if refcol.typ != mycol.typ || refcol.unsigned != mycol.unsigned {
 			v.SaveErrorf("table %q, foreign key %q: column %q and referenced column %q.%q type mismatch", table.name, fk.name, mycol.name, ref.name, col)
 		}
 		if refcol.charset != mycol.charset {
