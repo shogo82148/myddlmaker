@@ -258,6 +258,8 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.autoIncr = true
 		case "invisible":
 			col.invisible = true
+		case "unsigned":
+			col.unsigned = true
 		default:
 			name, val, _ := strings.Cut(opt, "=")
 			switch name {

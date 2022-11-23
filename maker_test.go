@@ -318,6 +318,287 @@ func (*Foo20) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo21 struct {
+	ID       int32
+	ParentID nullUint32 `ddl:",type=INTEGER,unsigned,null"`
+}
+
+func (*Foo21) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkp1 struct {
+	ID string
+}
+
+func (*Fkp1) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc1 struct {
+	ID       string
+	ParentID sql.NullString `ddl:",null"`
+}
+
+func (*Fkc1) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc1) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc1) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc1_parent_id",
+			[]string{"parent_id"},
+			"fkp1",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp2 struct {
+	ID int64
+}
+
+func (*Fkp2) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc2 struct {
+	ID       string
+	ParentID sql.NullInt64 `ddl:",null"`
+}
+
+func (*Fkc2) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc2) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc2) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc2_parent_id",
+			[]string{"parent_id"},
+			"fkp2",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp3 struct {
+	ID int32
+}
+
+func (*Fkp3) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc3 struct {
+	ID       string
+	ParentID sql.NullInt32 `ddl:",null"`
+}
+
+func (*Fkc3) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc3) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc3) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc3_parent_id",
+			[]string{"parent_id"},
+			"fkp3",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp4 struct {
+	ID int16
+}
+
+func (*Fkp4) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc4 struct {
+	ID       string
+	ParentID sql.NullInt16 `ddl:",null"`
+}
+
+func (*Fkc4) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc4) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc4) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc4_parent_id",
+			[]string{"parent_id"},
+			"fkp4",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp5 struct {
+	ID byte
+}
+
+func (*Fkp5) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc5 struct {
+	ID       string
+	ParentID sql.NullByte `ddl:",null"`
+}
+
+func (*Fkc5) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc5) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc5) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc5_parent_id",
+			[]string{"parent_id"},
+			"fkp5",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp6 struct {
+	ID float64
+}
+
+func (*Fkp6) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc6 struct {
+	ID       string
+	ParentID sql.NullFloat64 `ddl:",null"`
+}
+
+func (*Fkc6) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc6) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc6) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc6_parent_id",
+			[]string{"parent_id"},
+			"fkp6",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp7 struct {
+	ID bool
+}
+
+func (*Fkp7) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc7 struct {
+	ID       string
+	ParentID sql.NullBool `ddl:",null"`
+}
+
+func (*Fkc7) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc7) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc7) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc7_parent_id",
+			[]string{"parent_id"},
+			"fkp7",
+			[]string{"id"},
+		),
+	}
+}
+
+type Fkp8 struct {
+	ID uint32
+}
+
+func (*Fkp8) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Fkc8 struct {
+	ID       string
+	ParentID nullUint32 `ddl:",type=INTEGER,unsigned,null"`
+}
+
+func (*Fkc8) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Fkc8) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Fkc8) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey(
+			"fk_fkc8_parent_id",
+			[]string{"parent_id"},
+			"fkp8",
+			[]string{"id"},
+		),
+	}
+}
+
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -564,6 +845,152 @@ func TestMaker_Generate(t *testing.T) {
 		"CREATE TABLE `foo20` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    `json` JSON NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// unsigned integer specified in struct tag
+	testMaker(t, []any{&Foo21{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo21`;\n\n"+
+		"CREATE TABLE `foo21` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `parent_id` INTEGER UNSIGNED NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullble string foreign key
+	testMaker(t, []any{&Fkp1{}, &Fkc1{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp1`;\n\n"+
+		"CREATE TABLE `fkp1` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc1`;\n\n"+
+		"CREATE TABLE `fkc1` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` VARCHAR(191) NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc1_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp1` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable bigint foreign key
+	testMaker(t, []any{&Fkp2{}, &Fkc2{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp2`;\n\n"+
+		"CREATE TABLE `fkp2` (\n"+
+		"    `id` BIGINT NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc2`;\n\n"+
+		"CREATE TABLE `fkc2` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` BIGINT NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc2_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp2` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable integer foreign key
+	testMaker(t, []any{&Fkp3{}, &Fkc3{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp3`;\n\n"+
+		"CREATE TABLE `fkp3` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc3`;\n\n"+
+		"CREATE TABLE `fkc3` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` INTEGER NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc3_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp3` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable smallint foreign key
+	testMaker(t, []any{&Fkp4{}, &Fkc4{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp4`;\n\n"+
+		"CREATE TABLE `fkp4` (\n"+
+		"    `id` SMALLINT NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc4`;\n\n"+
+		"CREATE TABLE `fkc4` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` SMALLINT NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc4_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp4` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable tinyint foreign key
+	testMaker(t, []any{&Fkp5{}, &Fkc5{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp5`;\n\n"+
+		"CREATE TABLE `fkp5` (\n"+
+		"    `id` TINYINT UNSIGNED NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc5`;\n\n"+
+		"CREATE TABLE `fkc5` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` TINYINT UNSIGNED NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc5_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp5` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable double foreign key
+	testMaker(t, []any{&Fkp6{}, &Fkc6{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp6`;\n\n"+
+		"CREATE TABLE `fkp6` (\n"+
+		"    `id` DOUBLE NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc6`;\n\n"+
+		"CREATE TABLE `fkc6` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` DOUBLE NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc6_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp6` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable tinyint(1) foreign key
+	testMaker(t, []any{&Fkp7{}, &Fkc7{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp7`;\n\n"+
+		"CREATE TABLE `fkp7` (\n"+
+		"    `id` TINYINT(1) NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc7`;\n\n"+
+		"CREATE TABLE `fkc7` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` TINYINT(1) NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc7_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp7` (`id`),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable unsigned integer foreign key
+	testMaker(t, []any{&Fkp8{}, &Fkc8{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `fkp8`;\n\n"+
+		"CREATE TABLE `fkp8` (\n"+
+		"    `id` INTEGER UNSIGNED NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `fkc8`;\n\n"+
+		"CREATE TABLE `fkc8` (\n"+
+		"    `id` VARCHAR(191) NOT NULL,\n"+
+		"    `parent_id` INTEGER UNSIGNED NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_fkc8_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `fkp8` (`id`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
