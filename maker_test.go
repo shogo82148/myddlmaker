@@ -859,7 +859,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	// NULL foreign key
+	// nullble string foreign key
 	testMaker(t, []any{&Fkp1{}, &Fkc1{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp1`;\n\n"+
 		"CREATE TABLE `fkp1` (\n"+
@@ -876,6 +876,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable bigint foreign key
 	testMaker(t, []any{&Fkp2{}, &Fkc2{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp2`;\n\n"+
 		"CREATE TABLE `fkp2` (\n"+
@@ -892,6 +893,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable integer foreign key
 	testMaker(t, []any{&Fkp3{}, &Fkc3{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp3`;\n\n"+
 		"CREATE TABLE `fkp3` (\n"+
@@ -908,6 +910,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable smallint foreign key
 	testMaker(t, []any{&Fkp4{}, &Fkc4{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp4`;\n\n"+
 		"CREATE TABLE `fkp4` (\n"+
@@ -924,6 +927,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable tinyint foreign key
 	testMaker(t, []any{&Fkp5{}, &Fkc5{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp5`;\n\n"+
 		"CREATE TABLE `fkp5` (\n"+
@@ -940,6 +944,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable double foreign key
 	testMaker(t, []any{&Fkp6{}, &Fkc6{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp6`;\n\n"+
 		"CREATE TABLE `fkp6` (\n"+
@@ -956,6 +961,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable tinyint(1) foreign key
 	testMaker(t, []any{&Fkp7{}, &Fkc7{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp7`;\n\n"+
 		"CREATE TABLE `fkp7` (\n"+
@@ -972,6 +978,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// nullable unsigned integer foreign key
 	testMaker(t, []any{&Fkp8{}, &Fkc8{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp8`;\n\n"+
 		"CREATE TABLE `fkp8` (\n"+
