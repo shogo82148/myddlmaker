@@ -189,6 +189,9 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 	} else {
 		io.WriteString(w, " NOT NULL")
 	}
+	if col.srid != nil {
+		fmt.Fprintf(w, " SRID %d", valInt(col.srid))
+	}
 	if col.def != "" {
 		io.WriteString(w, " DEFAULT ")
 		io.WriteString(w, col.def)
@@ -606,4 +609,17 @@ LOOP:
 	}
 	fmt.Fprintf(w, "return nil\n")
 	fmt.Fprintf(w, "}\n\n")
+}
+
+// ptrInt returns a pointer to int value.
+func ptrInt(v int) *int {
+	return &v
+}
+
+// valInt returns a value of int pointer.
+func valInt(v *int) int {
+	if v == nil {
+		return 0
+	}
+	return *v
 }

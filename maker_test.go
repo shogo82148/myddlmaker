@@ -327,6 +327,16 @@ func (*Foo21) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo22 struct {
+	ID int32  `ddl:",auto"`
+	P  string `ddl:",type=POINT,null,srid=0"`
+	G  string `ddl:",type=GEOMETRY,srid=4326"`
+}
+
+func (*Foo22) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -833,7 +843,7 @@ func TestMaker_Generate(t *testing.T) {
 		"DROP TABLE IF EXISTS `foo11`;\n\n"+
 		"CREATE TABLE `foo11` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
-		"    `point` GEOMETRY NOT NULL,\n"+
+		"    `point` GEOMETRY NOT NULL SRID 4326,\n"+
 		"    SPATIAL INDEX `idx_point` (`point`) COMMENT 'SPATIAL INDEX',\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
@@ -859,7 +869,19 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	// nullble string foreign key
+	// Spatial Data Types
+	// https://dev.mysql.com/doc/refman/8.0/en/spatial-type-overview.html
+	testMaker(t, []any{&Foo22{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo22`;\n\n"+
+		"CREATE TABLE `foo22` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    `p` POINT NULL SRID 0,\n"+
+		"    `g` GEOMETRY NOT NULL SRID 4326,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// nullable string foreign key
 	testMaker(t, []any{&Fkp1{}, &Fkc1{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `fkp1`;\n\n"+
 		"CREATE TABLE `fkp1` (\n"+

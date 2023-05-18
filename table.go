@@ -128,7 +128,7 @@ type column struct {
 	collate string
 
 	// srid is the id of spatial reference systems
-	srid int
+	srid *int
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
@@ -274,7 +274,7 @@ func newColumn(f reflect.StructField) (*column, error) {
 				if err != nil {
 					return nil, fmt.Errorf("myddlmaker: failed to parse srid param in tag: %w", err)
 				}
-				col.srid = int(v)
+				col.srid = ptrInt(int(v))
 			case "type":
 				col.typ = val
 				col.unsigned = false
