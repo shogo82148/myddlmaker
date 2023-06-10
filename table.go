@@ -25,10 +25,17 @@ type Table interface {
 	Table() string
 }
 
+// TableComment add comments to the table.
+// Implement the TableComment interface to add comments to the table.
+type TableComment interface {
+	TableComment() string
+}
+
 type table struct {
 	name            string
 	rawName         string
 	columns         []*column
+	comment         *string
 	primaryKey      *PrimaryKey
 	indexes         []*Index
 	uniqueIndexes   []*UniqueIndex
@@ -51,6 +58,13 @@ func newTable(s any) (*table, error) {
 		tbl.name = t.Table()
 	} else {
 		tbl.name = camelToSnake(typ.Name())
+	}
+
+	if t, ok := iface.(TableComment); ok {
+		comment := t.TableComment()
+		if comment != "" {
+			tbl.comment = &comment
+		}
 	}
 
 	fields := reflect.VisibleFields(typ)

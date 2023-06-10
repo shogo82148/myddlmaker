@@ -151,6 +151,9 @@ func (m *Maker) generateTable(w io.Writer, table *table) {
 	fmt.Fprintf(w, "    PRIMARY KEY (%s)\n", strings.Join(quoteAll(table.primaryKey.columns), ", "))
 
 	fmt.Fprintf(w, ")")
+	if table.comment != nil {
+		fmt.Fprintf(w, " COMMENT=%s", stringQuote(*table.comment))
+	}
 	if m.config != nil && m.config.DB != nil {
 		if engine := m.config.DB.Engine; engine != "" {
 			fmt.Fprintf(w, " ENGINE=%s", engine)

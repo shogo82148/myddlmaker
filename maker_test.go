@@ -337,6 +337,18 @@ func (*Foo22) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo23 struct {
+	ID int32 `ddl:",auto"`
+}
+
+func (*Foo23) TableComment() string {
+	return "test comment"
+}
+
+func (*Foo23) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -879,6 +891,15 @@ func TestMaker_Generate(t *testing.T) {
 		"    `g` GEOMETRY NOT NULL SRID 4326,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// add table comment
+	testMaker(t, []any{&Foo23{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo23`;\n\n"+
+		"CREATE TABLE `foo23` (\n"+
+		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") COMMENT='test comment' ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	// nullable string foreign key
