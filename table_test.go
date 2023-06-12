@@ -13,8 +13,8 @@ import (
 type myInt int64
 type customType struct{}
 type nullUint32 struct {
-	u32   uint32
-	valid bool
+	U32   uint32
+	Valid bool
 }
 
 type FooBar struct {
