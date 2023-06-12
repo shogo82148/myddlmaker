@@ -35,7 +35,7 @@ type FooBar struct {
 	ByteArray [4]byte
 	JSONValue json.RawMessage
 
-	// custom type
+	// custom types
 	MyInt      myInt
 	CustomType customType `ddl:",type=TIMESTAMP"`
 	Decimal    float64    `ddl:",type=DECIMAL"`
