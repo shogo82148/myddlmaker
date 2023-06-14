@@ -13,8 +13,8 @@ import (
 type myInt int64
 type customType struct{}
 type nullUint32 struct {
-	u32   uint32
-	valid bool
+	U32   uint32
+	Valid bool
 }
 
 type FooBar struct {
@@ -35,7 +35,7 @@ type FooBar struct {
 	ByteArray [4]byte
 	JSONValue json.RawMessage
 
-	// custom type
+	// custom types
 	MyInt      myInt
 	CustomType customType `ddl:",type=TIMESTAMP"`
 	Decimal    float64    `ddl:",type=DECIMAL"`
