@@ -19,14 +19,24 @@ var (
 	IgnoreName = "-"
 )
 
-// Table customize the table name.
-// Implement the Table interface to customize the table name.
+// Table is used for customizing the table name.
+// It is an optional interface that may be implemented by a table.
+//
+//	// it generates CREATE TABLE `users` ...
+//	func (*User) Table() string {
+//	    return "users"
+//	}
 type Table interface {
 	Table() string
 }
 
-// TableComment add comments to the table.
-// Implement the TableComment interface to add comments to the table.
+// TableComment is used for customizing the table comment.
+// It is an optional interface that may be implemented by a table.
+//
+//	// it generates CREATE TABLE `user` ( ... ) COMMENT='some comments'
+//	func (*User) TableComment() string {
+//	    return "some comments"
+//	}
 type TableComment interface {
 	TableComment() string
 }
