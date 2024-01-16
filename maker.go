@@ -453,6 +453,44 @@ func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
 		values = append(values, fmt.Sprintf("v.%s", c.rawName))
 	}
 
+	if len(placeholders) == 0 {
+		strPlaceholders := ", ()"
+		insert := "INSERT INTO " + quote(table.name) + " () VALUES ()"
+		fmt.Fprintf(w, "const q = %q+\n%q\n", insert, strings.Repeat(strPlaceholders, maxMaxStructCount-1))
+		fmt.Fprintf(w, "const maxStructCount = %d\n", maxMaxStructCount)
+		fmt.Fprintf(w, `if len(values) >= maxStructCount {
+			err := func() error {
+				stmt, err := execer.PrepareContext(ctx, q)
+				if err != nil {
+					return err
+				}
+				defer stmt.Close()
+
+				for len(values) >= maxStructCount {
+					values = values[maxStructCount:]
+					if _, err := stmt.ExecContext(ctx); err != nil {
+						return err
+					}
+				}
+				return nil
+			}()
+			if err != nil {
+				return err
+			}
+		}
+		if len(values) == 0 {
+			return nil
+		}
+		if _, err := execer.ExecContext(ctx, q[:len(values)*%[1]d+%[2]d]); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	`, len(strPlaceholders), len(insert)-len(strPlaceholders))
+		return
+	}
+
 	strPlaceholders := ", (" + strings.Join(placeholders, ", ") + ")"
 	maxStructCount := maxPlaceholderCount / len(placeholders)
 	if maxStructCount > maxMaxStructCount {
