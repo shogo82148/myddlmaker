@@ -211,8 +211,9 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 | `float64`, `sql.NullFloat64` |      `DOUBLE`       |
 |  `string`, `sql.NullString`  |      `VARCHAR`      |
 |    `bool`, `sql.NullBool`    |    `TINYINT(1)`     |
-|           `[]byte`           |      `VARCHAR`      |
-|         `time.Time`          |    `DATETIME(6)`    |
+|           `[]byte`           |     `VARBINARY`     |
+|          `[N]byte`           |     `BINARY(N)`     |
+| `time.Time`, `sql.NullTime`  |    `DATETIME(6)`    |
 |      `json.RawMessage`       |       `JSON`        |
 
 ## Go Struct Tag Options
@@ -222,7 +223,7 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 |       `null`        |        `NULL` (default: `NOT NULL`)         |
 |       `auto`        |              `AUTO INCREMENT`               |
 |     `invisible`     |                 `INVISIBLE`                 |
-|     `unsigned`      |                  `UNSIGNED`                 |
+|     `unsigned`      |                 `UNSIGNED`                  |
 |    `size=<size>`    | `VARCHAR(<size>)`, `DATETIME(<size>)`, etc. |
 |    `type=<type>`    |             override field type             |
 |    `srid=<srid>`    |                override SRID                |
