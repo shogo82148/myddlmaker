@@ -176,9 +176,6 @@ func newColumn(f reflect.StructField) (*column, error) {
 		rawType: typ,
 	}
 
-	if typ.Implements(myddlmakerJSON) {
-		col.typ = "JSON"
-	}
 	switch typ.Kind() {
 	case reflect.Bool:
 		col.typ = "TINYINT"
@@ -327,15 +324,33 @@ func indirect(typ reflect.Type) reflect.Type {
 	seen := map[reflect.Type]struct{}{
 		typ: {},
 	}
-	for typ.Kind() == reflect.Pointer {
-		elem := typ.Elem()
-		if _, ok := seen[elem]; ok {
-			return typ
+	for {
+		if typ.Kind() == reflect.Pointer {
+			elem := typ.Elem()
+			if _, ok := seen[elem]; ok {
+				return typ
+			}
+			typ = elem
+			seen[typ] = struct{}{}
+		} else if isSQLNull(typ) {
+			f, ok := typ.FieldByName("V")
+			if !ok {
+				break
+			}
+			typ = f.Type
+		} else {
+			break
 		}
-		typ = elem
-		seen[typ] = struct{}{}
 	}
 	return typ
+}
+
+func isSQLNull(typ reflect.Type) bool {
+	if typ.PkgPath() != "database/sql" {
+		return false
+	}
+	name := typ.Name()
+	return strings.HasPrefix(name, "Null[") && strings.HasSuffix(name, "]")
 }
 
 func cutComma(s string) (before string, after string, found bool) {

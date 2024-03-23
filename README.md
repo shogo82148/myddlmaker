@@ -197,24 +197,25 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 
 ## MySQL Types and Go Types
 
-|         Golang Type          |    MySQL Column     |
-| :--------------------------: | :-----------------: |
-|            `int8`            |      `TINYINT`      |
-|           `int16`            |     `SMALLINT`      |
-|           `int32`            |      `INTEGER`      |
-|   `int64`, `sql.NullInt64`   |      `BIGINT`       |
-|   `uint8`, `sql.NullByte`    | `TINYINT UNSIGNED`  |
-|           `uint16`           | `SMALLINT UNSIGNED` |
-|           `uint32`           | `INTEGER UNSIGNED`  |
-|           `uint64`           |  `BIGINT UNSIGNED`  |
-|          `float32`           |       `FLOAT`       |
-| `float64`, `sql.NullFloat64` |      `DOUBLE`       |
-|  `string`, `sql.NullString`  |      `VARCHAR`      |
-|    `bool`, `sql.NullBool`    |    `TINYINT(1)`     |
-|           `[]byte`           |     `VARBINARY`     |
-|          `[N]byte`           |     `BINARY(N)`     |
-| `time.Time`, `sql.NullTime`  |    `DATETIME(6)`    |
-|      `json.RawMessage`       |       `JSON`        |
+|         Golang Type          |         MySQL Column          |
+| :--------------------------: | :---------------------------: |
+|            `int8`            |           `TINYINT`           |
+|           `int16`            |          `SMALLINT`           |
+|           `int32`            |           `INTEGER`           |
+|   `int64`, `sql.NullInt64`   |           `BIGINT`            |
+|   `uint8`, `sql.NullByte`    |      `TINYINT UNSIGNED`       |
+|           `uint16`           |      `SMALLINT UNSIGNED`      |
+|           `uint32`           |      `INTEGER UNSIGNED`       |
+|           `uint64`           |       `BIGINT UNSIGNED`       |
+|          `float32`           |            `FLOAT`            |
+| `float64`, `sql.NullFloat64` |           `DOUBLE`            |
+|  `string`, `sql.NullString`  |           `VARCHAR`           |
+|    `bool`, `sql.NullBool`    |         `TINYINT(1)`          |
+|           `[]byte`           |          `VARBINARY`          |
+|          `[N]byte`           |          `BINARY(N)`          |
+| `time.Time`, `sql.NullTime`  |         `DATETIME(6)`         |
+|      `json.RawMessage`       |            `JSON`             |
+|        `sql.Null[T]`         | Corresponding MySQL type to T |
 
 ## Go Struct Tag Options
 
