@@ -272,44 +272,57 @@ func newColumn(f reflect.StructField) (*column, error) {
 	for len(remain) > 0 {
 		var opt string
 		opt, remain, _ = cutComma(remain)
-		switch opt {
+		name, val, ok := strings.Cut(opt, "=")
+		switch name {
 		case "null":
-			col.null = true
-		case "auto":
-			col.autoIncr = true
-		case "invisible":
-			col.invisible = true
-		case "unsigned":
-			col.unsigned = true
-		default:
-			name, val, _ := strings.Cut(opt, "=")
-			switch name {
-			case "size":
-				v, err := strconv.ParseInt(val, 10, 0)
-				if err != nil {
-					return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
-				}
-				col.size = int(v)
-			case "srid":
-				v, err := strconv.ParseInt(val, 10, 0)
-				if err != nil {
-					return nil, fmt.Errorf("myddlmaker: failed to parse srid param in tag: %w", err)
-				}
-				col.srid = ptrInt(int(v))
-			case "type":
-				col.typ = val
-				col.unsigned = false
-				col.size = 0
-				invalidType = false
-			case "default":
-				col.def = val
-			case "charset":
-				col.charset = val
-			case "collate":
-				col.collate = val
-			case "comment":
-				col.comment = val
+			v, err := parseBool("null", val, ok)
+			if err != nil {
+				return nil, err
 			}
+			col.null = v
+		case "auto":
+			v, err := parseBool("auto", val, ok)
+			if err != nil {
+				return nil, err
+			}
+			col.autoIncr = v
+		case "invisible":
+			v, err := parseBool("invisible", val, ok)
+			if err != nil {
+				return nil, err
+			}
+			col.invisible = v
+		case "unsigned":
+			v, err := parseBool("unsigned", val, ok)
+			if err != nil {
+				return nil, err
+			}
+			col.unsigned = v
+		case "size":
+			v, err := strconv.ParseInt(val, 10, 0)
+			if err != nil {
+				return nil, fmt.Errorf("myddlmaker: failed to parse size param in tag: %w", err)
+			}
+			col.size = int(v)
+		case "srid":
+			v, err := strconv.ParseInt(val, 10, 0)
+			if err != nil {
+				return nil, fmt.Errorf("myddlmaker: failed to parse srid param in tag: %w", err)
+			}
+			col.srid = ptrInt(int(v))
+		case "type":
+			col.typ = val
+			col.unsigned = false
+			col.size = 0
+			invalidType = false
+		case "default":
+			col.def = val
+		case "charset":
+			col.charset = val
+		case "collate":
+			col.collate = val
+		case "comment":
+			col.comment = val
 		}
 	}
 
@@ -318,6 +331,17 @@ func newColumn(f reflect.StructField) (*column, error) {
 	}
 
 	return col, nil
+}
+
+func parseBool(name, val string, ok bool) (bool, error) {
+	if !ok {
+		return true, nil
+	}
+	v, err := strconv.ParseBool(val)
+	if err != nil {
+		return false, fmt.Errorf("myddlmaker: failed to parse %s param in tag: %w", name, err)
+	}
+	return v, nil
 }
 
 func indirect(typ reflect.Type) reflect.Type {
