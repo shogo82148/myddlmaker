@@ -232,6 +232,22 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 | `collate=<collate>` |             `COLLATE <collate>`             |
 | `comment=<comment>` |             `COMMENT <comment>`             |
 
+#### Change Column Name
+
+According to the naming conventions of Golang, acronyms formed by concatenating initial letters (e.g., HTTP for Hyper Text Transfer Protocol) are written entirely in uppercase. When defining table column names according to this convention, it may result in undesirable column names. For instance, by default, the variable NameJP generates the column name name_j_p.
+
+To circumvent this issue, you can specify column names in the struct tags.
+
+```golang
+type User struct {
+	ID        uint64 `ddl:",auto"`
+	// By default, the `name` column will be generated.
+	// If you want to specify a column name explicitly (e.g. `user_name`),
+	// you write the column name immediately after the "ddl:" tag.
+	Name      string `ddl:"user_name,auto"`
+}
+```
+
 ## Primary Index
 
 Implement the `PrimaryKey` method to define the primary index.
