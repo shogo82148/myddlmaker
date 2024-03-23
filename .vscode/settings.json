@@ -5,9 +5,11 @@
         "MYSQL_TEST_ADDR": "127.0.0.1:3306",
     },
     "cSpell.words": [
+        "execer",
         "iface",
         "Initialisms",
         "myddlmaker",
+        "queryer",
         "SMALLINT",
         "srid",
         "TINYINT",
