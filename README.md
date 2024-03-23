@@ -238,7 +238,7 @@ According to the naming conventions of Golang, acronyms formed by concatenating 
 
 To circumvent this issue, you can specify column names in the struct tags.
 
-```golang
+```go
 type User struct {
 	ID        uint64 `ddl:",auto"`
 	// By default, the `name` column will be generated.
@@ -246,6 +246,7 @@ type User struct {
 	// you write the column name immediately after the "ddl:" tag.
 	Name      string `ddl:"user_name,auto"`
 }
+```
 
 ## Primary Index
 
