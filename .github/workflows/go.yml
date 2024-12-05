@@ -29,6 +29,7 @@ jobs:
           - "1.19"
           - "1.18"
         mysql:
+          - "8.4"
           - "8.0"
     steps:
       - name: Check out code into the Go module directory
