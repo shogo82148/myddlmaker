@@ -62,7 +62,7 @@ func (idx *Index) Invisible() *Index {
 
 // ASC returns a copy of idx with the ASC option.
 // If you set both ASC and DESC, the last one will be used.
-// If you specify the non-existent column, it will be ignored.
+// If you specify the non-existent column, panic will be raised.
 func (idx *Index) ASC(column string) *Index {
 	tmp := *idx // shallow copy
 	for k, v := range idx.order {
@@ -77,7 +77,7 @@ func (idx *Index) ASC(column string) *Index {
 
 // DESC returns a copy of idx with the DESC option.
 // If you set both ASC and DESC, the last one will be used.
-// If you specify the non-existent column, it will be ignored.
+// If you specify the non-existent column, panic will be raised.
 func (idx *Index) DESC(column string) *Index {
 	tmp := *idx // shallow copy
 	for k, v := range idx.order {
