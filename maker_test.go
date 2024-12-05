@@ -364,21 +364,6 @@ func (*Foo25) Indexes() []*Index {
 	}
 }
 
-type Foo26 struct {
-	ID  int32
-	Age int32
-}
-
-func (*Foo26) PrimaryKey() *PrimaryKey {
-	return NewPrimaryKey("id")
-}
-
-func (*Foo26) Indexes() []*Index {
-	return []*Index{
-		NewIndex("idx", "age").ASC("not_exist_column").DESC("not_exist_column"), // ignore order
-	}
-}
-
 type Foo27 struct {
 	ID  int32
 	Age int32
@@ -953,16 +938,6 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `age` INTEGER NOT NULL,\n"+
 		"    INDEX `idx` (`id` ASC, `age` DESC),\n"+
-		"    PRIMARY KEY (`id`)\n"+
-		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
-		"SET foreign_key_checks=1;\n")
-
-	testMaker(t, []any{&Foo26{}}, "SET foreign_key_checks=0;\n\n"+
-		"DROP TABLE IF EXISTS `foo26`;\n\n"+
-		"CREATE TABLE `foo26` (\n"+
-		"    `id` INTEGER NOT NULL,\n"+
-		"    `age` INTEGER NOT NULL,\n"+
-		"    INDEX `idx` (`age`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")

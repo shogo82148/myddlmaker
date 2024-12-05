@@ -276,8 +276,8 @@ func (*User) Indexes() []*myddlmaker.Index {
         // INDEX `idx_name` (`name`) INVISIBLE
         myddlmaker.NewIndex("idx_name", "name").Invisible(),
 
-		// INDEX `idx_name`(`id1` ASC, `id2` DESC)
-		myddlmaker.NewIndex("idx_name", "name").ASC("id1").DESC("id2"),
+		// INDEX `idx`(`id1` ASC, `id2` DESC)
+		myddlmaker.NewIndex("idx", "id1", "id2").ASC("id1").DESC("id2"),
     }
 }
 ```
