@@ -349,6 +349,36 @@ func (*Foo23) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo25 struct {
+	ID  int32
+	Age int32
+}
+
+func (*Foo25) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo25) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx", "id", "age").ASC("id").DESC("age"),
+	}
+}
+
+type Foo27 struct {
+	ID  int32
+	Age int32
+}
+
+func (*Foo27) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo27) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx", "age").ASC("age").DESC("age"), // overwrite order
+	}
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -900,6 +930,26 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") COMMENT='test comment' ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	testMaker(t, []any{&Foo25{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo25`;\n\n"+
+		"CREATE TABLE `foo25` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `age` INTEGER NOT NULL,\n"+
+		"    INDEX `idx` (`id` ASC, `age` DESC),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	testMaker(t, []any{&Foo27{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo27`;\n\n"+
+		"CREATE TABLE `foo27` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `age` INTEGER NOT NULL,\n"+
+		"    INDEX `idx` (`age` DESC),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
 	// nullable string foreign key

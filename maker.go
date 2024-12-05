@@ -218,7 +218,16 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, "    INDEX ")
 		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
+		// Add the column name and the order.
+		columnWithOrder := make([]string, 0, len(idx.columns))
+		for _, column := range idx.columns {
+			if order, ok := idx.order[column]; ok {
+				columnWithOrder = append(columnWithOrder, quote(column)+" "+order)
+			} else {
+				columnWithOrder = append(columnWithOrder, quote(column))
+			}
+		}
+		io.WriteString(w, strings.Join(columnWithOrder, ", "))
 		io.WriteString(w, ")")
 		if idx.invisible {
 			io.WriteString(w, " INVISIBLE")
