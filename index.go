@@ -1,5 +1,10 @@
 package myddlmaker
 
+import (
+	"maps"
+	"slices"
+)
+
 type indexes interface {
 	Indexes() []*Index
 }
@@ -64,43 +69,25 @@ func (idx *Index) Invisible() *Index {
 // If you set both ASC and DESC, the last one will be used.
 // If you specify the non-existent column, panic will be raised.
 func (idx *Index) ASC(column string) *Index {
-	tmp := *idx // shallow copy
-	tmp.order = make(map[string]string, len(tmp.columns))
-	for k, v := range idx.order {
-		tmp.order[k] = v
-	}
-	if !containsColumn(idx, column) {
-		panic("column is missing")
-	}
-	tmp.order[column] = "ASC"
-	return &tmp
+	return idx.setOrder(column, "ASC")
 }
 
 // DESC returns a copy of idx with the DESC option.
 // If you set both ASC and DESC, the last one will be used.
 // If you specify the non-existent column, panic will be raised.
 func (idx *Index) DESC(column string) *Index {
-	tmp := *idx // shallow copy
-	tmp.order = make(map[string]string, len(tmp.columns))
-	for k, v := range idx.order {
-		tmp.order[k] = v
-	}
-	if !containsColumn(idx, column) {
-		panic("column is missing")
-	}
-	tmp.order[column] = "DESC"
-	return &tmp
+	return idx.setOrder(column, "DESC")
 }
 
-// containsColumn returns true if the index contains the column.
-// slices.Contains is supported in Go 1.21. So, we can't use it.
-func containsColumn(idx *Index, column string) bool {
-	for _, c := range idx.columns {
-		if c == column {
-			return true
-		}
+func (idx *Index) setOrder(column, order string) *Index {
+	if !slices.Contains(idx.columns, column) {
+		panic("invalid column")
 	}
-	return false
+
+	tmp := *idx // shallow copy
+	tmp.order = maps.Clone(tmp.order)
+	tmp.order[column] = order
+	return &tmp
 }
 
 // UniqueIndex is a unique index of a table.
