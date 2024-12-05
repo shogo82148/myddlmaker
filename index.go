@@ -65,6 +65,7 @@ func (idx *Index) Invisible() *Index {
 // If you specify the non-existent column, panic will be raised.
 func (idx *Index) ASC(column string) *Index {
 	tmp := *idx // shallow copy
+	tmp.order = make(map[string]string, len(tmp.columns))
 	for k, v := range idx.order {
 		tmp.order[k] = v
 	}
@@ -80,6 +81,7 @@ func (idx *Index) ASC(column string) *Index {
 // If you specify the non-existent column, panic will be raised.
 func (idx *Index) DESC(column string) *Index {
 	tmp := *idx // shallow copy
+	tmp.order = make(map[string]string, len(tmp.columns))
 	for k, v := range idx.order {
 		tmp.order[k] = v
 	}
