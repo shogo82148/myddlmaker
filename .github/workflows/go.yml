@@ -34,7 +34,7 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - uses: shogo82148/actions-setup-mysql@d498180e6d11574c6655e56b6fea6ab64a52a15e # v1.44.0
+      - uses: shogo82148/actions-setup-mysql@b9917bb49fa1c316abfb6931011d54da7f5470d9 # v1.45.0
         with:
           mysql-version: ${{ matrix.mysql }}
           user: ${{ env.MYSQL_TEST_USER }}
