@@ -241,23 +241,23 @@ type fullTextIndexes interface {
 //	}
 type FullTextIndex struct {
 	name      string
-	column    string
+	columns   []string
 	invisible bool
 	comment   string
 	parser    string
 }
 
 // NewFullTextIndex returns a new full text index.
-func NewFullTextIndex(name string, column string) *FullTextIndex {
+func NewFullTextIndex(name string, columns ...string) *FullTextIndex {
 	if name == "" {
 		panic("name is missing")
 	}
-	if column == "" {
-		panic("column is missing")
+	if len(columns) == 0 {
+		panic("columns is missing")
 	}
 	return &FullTextIndex{
-		name:   name,
-		column: column,
+		name:    name,
+		columns: columns,
 	}
 }
 

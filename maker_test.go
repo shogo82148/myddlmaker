@@ -379,6 +379,22 @@ func (*Foo27) Indexes() []*Index {
 	}
 }
 
+type Foo28 struct {
+	ID      int32
+	Title   string
+	Content string
+}
+
+func (*Foo28) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo28) FullTextIndexes() []*FullTextIndex {
+	return []*FullTextIndex{
+		NewFullTextIndex("idx_title_content", "title", "content"),
+	}
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -948,6 +964,18 @@ func TestMaker_Generate(t *testing.T) {
 		"    `id` INTEGER NOT NULL,\n"+
 		"    `age` INTEGER NOT NULL,\n"+
 		"    INDEX `idx` (`age` DESC),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// FULLTEXT INDEX with multiple columns
+	testMaker(t, []any{&Foo28{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo28`;\n\n"+
+		"CREATE TABLE `foo28` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `title` VARCHAR(191) NOT NULL,\n"+
+		"    `content` VARCHAR(191) NOT NULL,\n"+
+		"    FULLTEXT INDEX `idx_title_content` (`title`, `content`),\n"+
 		"    PRIMARY KEY (`id`)\n"+
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")

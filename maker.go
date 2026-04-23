@@ -259,7 +259,7 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		io.WriteString(w, "    FULLTEXT INDEX ")
 		io.WriteString(w, quote(idx.name))
 		io.WriteString(w, " (")
-		io.WriteString(w, quote(idx.column))
+		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
 		io.WriteString(w, ")")
 		if idx.invisible {
 			io.WriteString(w, " INVISIBLE")
