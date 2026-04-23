@@ -367,8 +367,8 @@ func (*User) FullTextIndexes() []*myddlmaker.FullTextIndex {
         // FULLTEXT INDEX `idx_name` (`name`) INVISIBLE
         myddlmaker.NewFullTextIndex("idx_name", "name").Invisible(),
 
-		// FULLTEXT INDEX `idx_name` (`name1`, `name2`)
-		myddlmaker.NewFullTextIndex("idx_name", "name1", "name2"),
+        // FULLTEXT INDEX `idx_name` (`name1`, `name2`)
+        myddlmaker.NewFullTextIndex("idx_name", "name1", "name2"),
     }
 }
 ```
