@@ -74,6 +74,10 @@ type FooBar struct {
 
 	// Default Value
 	DefaultValue int64 `ddl:",default=123"`
+
+	// Generated Column
+	Generated       int64 `ddl:",generated=default_value + 1"`
+	StoredGenerated int64 `ddl:",generated=(default_value * 2),stored"`
 }
 
 func TestTable(t *testing.T) {
@@ -117,6 +121,8 @@ func TestTable(t *testing.T) {
 			{name: "null_int64", rawName: "NullInt64", typ: "BIGINT"},
 			{name: "auto", rawName: "Auto", typ: "BIGINT", autoIncr: true},
 			{name: "default_value", rawName: "DefaultValue", typ: "BIGINT", def: "123"},
+			{name: "generated", rawName: "Generated", typ: "BIGINT", generated: "default_value + 1"},
+			{name: "stored_generated", rawName: "StoredGenerated", typ: "BIGINT", generated: "default_value * 2", stored: true},
 		},
 	}
 	got, err := newTable(&FooBar{})
@@ -216,6 +222,26 @@ func TestCutComma(t *testing.T) {
 		}
 		if found != tt.found {
 			t.Errorf("%d: unexpected found: got %t, want %t", i, found, tt.found)
+		}
+	}
+}
+
+func TestTrimOuterParens(t *testing.T) {
+	tests := []struct {
+		in, want string
+	}{
+		{in: "a + b", want: "a + b"},
+		{in: "(a + b)", want: "a + b"},
+		{in: " ( a + b ) ", want: "a + b"},
+		{in: "((a + b))", want: "(a + b)"},
+		{in: "(a) + (b)", want: "(a) + (b)"},
+		{in: "concat(a, b)", want: "concat(a, b)"},
+		{in: "(concat(a, b))", want: "concat(a, b)"},
+		{in: "(a + b", want: "(a + b"},
+	}
+	for _, tt := range tests {
+		if got := trimOuterParens(tt.in); got != tt.want {
+			t.Errorf("trimOuterParens(%q) = %q, want %q", tt.in, got, tt.want)
 		}
 	}
 }
