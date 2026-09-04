@@ -1,4 +1,4 @@
-module github.com/shogo82148/myddlmaker
+module github.com/m10ht/myddlmaker
 
 go 1.24.0
 
