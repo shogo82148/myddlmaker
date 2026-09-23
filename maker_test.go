@@ -395,6 +395,28 @@ func (*Foo28) FullTextIndexes() []*FullTextIndex {
 	}
 }
 
+type Foo29 struct {
+	ID      int32
+	Price   int32
+	Count   int32
+	Total   int32  `ddl:",generated=price * count"`
+	Summary string `ddl:",generated=concat(price, ' x ', count),stored,null,comment=generated column"`
+}
+
+func (*Foo29) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+type Foo30 struct {
+	ID     int32 `ddl:",auto,generated=1"`
+	Value  int32 `ddl:",generated=id + 1,default=0"`
+	Stored int32 `ddl:",stored"`
+}
+
+func (*Foo30) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -813,6 +835,18 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	testMaker(t, []any{&Foo29{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo29`;\n\n"+
+		"CREATE TABLE `foo29` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `price` INTEGER NOT NULL,\n"+
+		"    `count` INTEGER NOT NULL,\n"+
+		"    `total` INTEGER GENERATED ALWAYS AS (price * count) VIRTUAL NOT NULL,\n"+
+		"    `summary` VARCHAR(191) GENERATED ALWAYS AS (concat(price, ' x ', count)) STORED NULL COMMENT 'generated column',\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
 	testMaker(t, []any{&Foo1{}, &Foo4{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
@@ -1148,6 +1182,12 @@ func TestMaker_Generate(t *testing.T) {
 	testMakerError(t, []any{&Foo18{}, &Foo19{}}, []string{
 		`table "foo18", foreign key "fk_foo19": index required on table "foo18"`,
 		`table "foo18", foreign key "fk_foo19": column "foo19_id" and referenced column "foo19"."id" type mismatch`,
+	})
+
+	testMakerError(t, []any{&Foo30{}}, []string{
+		`table "foo30", column "id": generated column cannot be auto increment`,
+		`table "foo30", column "value": generated column cannot have a default value`,
+		`table "foo30", column "stored": stored requires generated`,
 	})
 }
 

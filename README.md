@@ -232,6 +232,8 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 | `charset=<charset>` |          `CHARACTER SET <charset>`          |
 | `collate=<collate>` |             `COLLATE <collate>`             |
 | `comment=<comment>` |             `COMMENT <comment>`             |
+|  `generated=<expr>`  |  `GENERATED ALWAYS AS (<expr>) VIRTUAL`    |
+|      `stored`       | `STORED` instead of `VIRTUAL` (with `generated`) |
 
 #### Change Column Name
 
