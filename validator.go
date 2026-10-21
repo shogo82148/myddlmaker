@@ -38,6 +38,7 @@ func (v *validator) Validate() error {
 	v.createTableMap()
 
 	for _, table := range v.tables {
+		v.validateColumns(table)
 		v.validateIndex(table)
 		v.validateIndexName(table)
 	}
@@ -95,6 +96,23 @@ func (v *validator) createTableMap() {
 	}
 	v.tableMap = tables
 	v.columnMap = columns
+}
+
+func (v *validator) validateColumns(table *table) {
+	for _, col := range table.columns {
+		if col.generated == "" {
+			if col.stored {
+				v.SaveErrorf("table %q, column %q: stored requires generated", table.name, col.name)
+			}
+			continue
+		}
+		if col.autoIncr {
+			v.SaveErrorf("table %q, column %q: generated column cannot be auto increment", table.name, col.name)
+		}
+		if col.def != "" {
+			v.SaveErrorf("table %q, column %q: generated column cannot have a default value", table.name, col.name)
+		}
+	}
 }
 
 func (v *validator) validateIndex(table *table) {
