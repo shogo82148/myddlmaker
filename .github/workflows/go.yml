@@ -32,16 +32,16 @@ jobs:
           - "8.0"
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
 
-      - uses: shogo82148/actions-setup-mysql@fb8ae72ad9f2f8244e594d6d48a981e975aee78e # v1.56.1
+      - uses: shogo82148/actions-setup-mysql@v1.56.1
         with:
           mysql-version: ${{ matrix.mysql }}
           user: ${{ env.MYSQL_TEST_USER }}
           password: ${{ env.MYSQL_TEST_PASS }}
 
       - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go }}
 
@@ -49,7 +49,7 @@ jobs:
         run: make test
 
       - name: Send coverage
-        uses: shogo82148/actions-goveralls@548a2a7896df420c38df648845a5525a33f82585 # v1.11.5
+        uses: shogo82148/actions-goveralls@v1.11.5
         with:
           path-to-profile: profile.cov
           flag-name: Go-${{ matrix.go }}-OS-${{ matrix.os }}
@@ -61,6 +61,6 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: shogo82148/actions-goveralls@548a2a7896df420c38df648845a5525a33f82585 # v1.11.5
+      - uses: shogo82148/actions-goveralls@v1.11.5
         with:
           parallel-finished: true
