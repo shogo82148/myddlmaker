@@ -187,6 +187,15 @@ func (m *Maker) generateColumn(w io.Writer, col *column) {
 	if col.unsigned {
 		io.WriteString(w, " UNSIGNED")
 	}
+	if col.generated != "" {
+		// https://dev.mysql.com/doc/refman/8.0/en/create-table-generated-columns.html
+		fmt.Fprintf(w, " GENERATED ALWAYS AS (%s)", col.generated)
+		if col.stored {
+			io.WriteString(w, " STORED")
+		} else {
+			io.WriteString(w, " VIRTUAL")
+		}
+	}
 	if col.null {
 		io.WriteString(w, " NULL")
 	} else {
@@ -454,7 +463,8 @@ func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
 	placeholders := make([]string, 0, len(table.columns))
 	values := make([]string, 0, len(table.columns))
 	for _, c := range table.columns {
-		if c.autoIncr {
+		// the values of auto increment columns and generated columns are computed by the server.
+		if c.autoIncr || c.generated != "" {
 			continue
 		}
 		columns = append(columns, quote(c.name))
