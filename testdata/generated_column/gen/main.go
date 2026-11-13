@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/shogo82148/myddlmaker"
-	schema "github.com/shogo82148/myddlmaker/testdata/generated"
+	schema "github.com/shogo82148/myddlmaker/testdata/generated_column"
 )
 
 func main() {
