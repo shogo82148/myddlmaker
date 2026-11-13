@@ -153,6 +153,13 @@ type column struct {
 
 	// srid is the id of spatial reference systems
 	srid *int
+
+	// generated is the expression of a generated column.
+	// https://dev.mysql.com/doc/refman/8.0/en/create-table-generated-columns.html
+	generated string
+
+	// stored marks the generated column as STORED (default: VIRTUAL).
+	stored bool
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
@@ -323,6 +330,14 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.collate = val
 		case "comment":
 			col.comment = val
+		case "generated":
+			col.generated = trimOuterParens(val)
+		case "stored":
+			v, err := parseBool("stored", val, ok)
+			if err != nil {
+				return nil, err
+			}
+			col.stored = v
 		}
 	}
 
@@ -395,4 +410,29 @@ func cutComma(s string) (before string, after string, found bool) {
 		}
 	}
 	return s, "", false
+}
+
+// trimOuterParens removes the parentheses that wrap the whole expression.
+// e.g. "(a + b)" -> "a + b", but "(a) + (b)" is kept as is.
+func trimOuterParens(s string) string {
+	s = strings.TrimSpace(s)
+	if len(s) < 2 || s[0] != '(' || s[len(s)-1] != ')' {
+		return s
+	}
+	var depth int
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 && i != len(s)-1 {
+				return s
+			}
+		}
+	}
+	if depth != 0 {
+		return s
+	}
+	return strings.TrimSpace(s[1 : len(s)-1])
 }
