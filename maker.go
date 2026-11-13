@@ -644,6 +644,10 @@ LOOP:
 				continue LOOP
 			}
 		}
+		// the values of generated columns are computed by the server, so they can't be updated.
+		if c.generated != "" {
+			continue
+		}
 		setFields = append(setFields, fmt.Sprintf("%s = ?", quote(c.name)))
 		goFields = append(goFields, "value."+c.rawName)
 	}
