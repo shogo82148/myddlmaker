@@ -3,6 +3,7 @@ package myddlmaker
 import (
 	"fmt"
 	"log"
+	"slices"
 )
 
 type validationError struct {
@@ -111,6 +112,10 @@ func (v *validator) validateColumns(table *table) {
 		}
 		if col.def != "" {
 			v.SaveErrorf("table %q, column %q: generated column cannot have a default value", table.name, col.name)
+		}
+		// InnoDB doesn't support virtual generated columns as primary keys.
+		if !col.stored && slices.Contains(table.primaryKey.columns, col.name) {
+			v.SaveErrorf("table %q, column %q: virtual generated column cannot be a primary key", table.name, col.name)
 		}
 	}
 }

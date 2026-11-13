@@ -417,6 +417,17 @@ func (*Foo30) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("id")
 }
 
+type Foo31 struct {
+	A       string
+	B       string
+	Virtual string `ddl:",generated=concat(a, b)"`
+	Stored  string `ddl:",generated=concat(b, a),stored"`
+}
+
+func (*Foo31) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("virtual", "stored")
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -1186,8 +1197,13 @@ func TestMaker_Generate(t *testing.T) {
 
 	testMakerError(t, []any{&Foo30{}}, []string{
 		`table "foo30", column "id": generated column cannot be auto increment`,
+		`table "foo30", column "id": virtual generated column cannot be a primary key`,
 		`table "foo30", column "value": generated column cannot have a default value`,
 		`table "foo30", column "stored": stored requires generated`,
+	})
+
+	testMakerError(t, []any{&Foo31{}}, []string{
+		`table "foo31", column "virtual": virtual generated column cannot be a primary key`,
 	})
 }
 
