@@ -168,6 +168,46 @@ func TestTable_EmptyGeneratedExpression(t *testing.T) {
 	}
 }
 
+func TestTable_GeneratedStringLiteral(t *testing.T) {
+	type FooBar struct {
+		ID      int64
+		Paren   string `ddl:",generated=concat(id, '('),stored,comment=paren"`
+		Comma   bool   `ddl:",generated=id = 'x,y',stored"`
+		Comment string `ddl:",comment=don't,null"`
+	}
+
+	tbl, err := newTable(&FooBar{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []struct {
+		generated string
+		stored    bool
+		null      bool
+		comment   string
+	}{
+		{},
+		{generated: "concat(id, '(')", stored: true, comment: "paren"},
+		{generated: "id = 'x,y'", stored: true},
+		// options other than generated don't treat quotes specially.
+		{null: true, comment: "don't"},
+	}
+	for i, col := range tbl.columns {
+		if col.generated != want[i].generated {
+			t.Errorf("%s: unexpected generated: got %q, want %q", col.name, col.generated, want[i].generated)
+		}
+		if col.stored != want[i].stored {
+			t.Errorf("%s: unexpected stored: got %t, want %t", col.name, col.stored, want[i].stored)
+		}
+		if col.null != want[i].null {
+			t.Errorf("%s: unexpected null: got %t, want %t", col.name, col.null, want[i].null)
+		}
+		if col.comment != want[i].comment {
+			t.Errorf("%s: unexpected comment: got %q, want %q", col.name, col.comment, want[i].comment)
+		}
+	}
+}
+
 func TestCutComma(t *testing.T) {
 	tests := []struct {
 		in     string
@@ -245,6 +285,86 @@ func TestCutComma(t *testing.T) {
 	}
 }
 
+func TestCutCommaSQL(t *testing.T) {
+	tests := []struct {
+		in     string
+		before string
+		after  string
+		found  bool
+	}{
+		{
+			in:     "generated=concat(a, b),stored",
+			before: "generated=concat(a, b)",
+			after:  "stored",
+			found:  true,
+		},
+		{
+			in:     "generated=concat(a, '('),stored",
+			before: "generated=concat(a, '(')",
+			after:  "stored",
+			found:  true,
+		},
+		{
+			in:     "generated=a = 'x,y',stored",
+			before: "generated=a = 'x,y'",
+			after:  "stored",
+			found:  true,
+		},
+		{
+			in:     `generated=a = "x,(",stored`,
+			before: `generated=a = "x,("`,
+			after:  "stored",
+			found:  true,
+		},
+		{
+			in:     "generated=`a,(` + 1,stored",
+			before: "generated=`a,(` + 1",
+			after:  "stored",
+			found:  true,
+		},
+		{
+			// doubled quotes
+			in:     "generated=a = 'it''s, ok',stored",
+			before: "generated=a = 'it''s, ok'",
+			after:  "stored",
+			found:  true,
+		},
+		{
+			// backslash escapes
+			in:     `generated=a = 'it\'s, ok',stored`,
+			before: `generated=a = 'it\'s, ok'`,
+			after:  "stored",
+			found:  true,
+		},
+		{
+			// an unclosed quote falls back to cutComma
+			in:     "generated=a = 'x,stored",
+			before: "generated=a = 'x",
+			after:  "stored",
+			found:  true,
+		},
+		{
+			in:     "generated=a = 'x,y'",
+			before: "generated=a = 'x,y'",
+			after:  "",
+			found:  false,
+		},
+	}
+
+	for i, tt := range tests {
+		before, after, found := cutCommaSQL(tt.in)
+		if before != tt.before {
+			t.Errorf("%d: unexpected before: got %q, want %q", i, before, tt.before)
+		}
+		if after != tt.after {
+			t.Errorf("%d: unexpected after: got %q, want %q", i, after, tt.after)
+		}
+		if found != tt.found {
+			t.Errorf("%d: unexpected found: got %t, want %t", i, found, tt.found)
+		}
+	}
+}
+
 func TestTrimOuterParens(t *testing.T) {
 	tests := []struct {
 		in, want string
@@ -257,6 +377,12 @@ func TestTrimOuterParens(t *testing.T) {
 		{in: "concat(a, b)", want: "concat(a, b)"},
 		{in: "(concat(a, b))", want: "concat(a, b)"},
 		{in: "(a + b", want: "(a + b"},
+
+		// parentheses in string literals and quoted identifiers
+		{in: "(concat('(', a))", want: "concat('(', a)"},
+		{in: "(a = '(') + (b = ')')", want: "(a = '(') + (b = ')')"},
+		{in: "(concat(\"(\", `a(`))", want: "concat(\"(\", `a(`)"},
+		{in: "(a = '(b)", want: "(a = '(b)"},
 	}
 	for _, tt := range tests {
 		if got := trimOuterParens(tt.in); got != tt.want {
