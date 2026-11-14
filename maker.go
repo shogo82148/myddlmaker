@@ -524,10 +524,7 @@ func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
 	}
 
 	strPlaceholders := ", (" + strings.Join(placeholders, ", ") + ")"
-	maxStructCount := maxPlaceholderCount / len(placeholders)
-	if maxStructCount > maxMaxStructCount {
-		maxStructCount = maxMaxStructCount
-	}
+	maxStructCount := min(maxPlaceholderCount/len(placeholders), maxMaxStructCount)
 	insert := "INSERT INTO " + quote(table.name) + " (" + strings.Join(columns, ", ") + ") VALUES" + " (" + strings.Join(placeholders, ", ") + ")"
 	fmt.Fprintf(w, "const q = %q+\n%q\n", insert, strings.Repeat(strPlaceholders, maxStructCount-1))
 	fmt.Fprintf(w, "const fieldCount = %d\n", len(placeholders))

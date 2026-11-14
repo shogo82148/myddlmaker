@@ -167,17 +167,17 @@ type column struct {
 }
 
 var errSkipColumn = errors.New("myddlmaker: skip this column")
-var timeType = reflect.TypeOf(time.Time{})
-var nullTimeType = reflect.TypeOf(sql.NullTime{})
-var nullStringType = reflect.TypeOf(sql.NullString{})
-var nullBoolType = reflect.TypeOf(sql.NullBool{})
-var nullByteType = reflect.TypeOf(sql.NullByte{})
-var nullFloat64Type = reflect.TypeOf(sql.NullFloat64{})
-var nullInt16Type = reflect.TypeOf(sql.NullInt16{})
-var nullInt32Type = reflect.TypeOf(sql.NullInt32{})
-var nullInt64Type = reflect.TypeOf(sql.NullInt64{})
-var jsonRawMessageType = reflect.TypeOf(json.RawMessage{})
-var myddlmakerJSON = reflect.TypeOf((*jsonMarker)(nil)).Elem()
+var timeType = reflect.TypeFor[time.Time]()
+var nullTimeType = reflect.TypeFor[sql.NullTime]()
+var nullStringType = reflect.TypeFor[sql.NullString]()
+var nullBoolType = reflect.TypeFor[sql.NullBool]()
+var nullByteType = reflect.TypeFor[sql.NullByte]()
+var nullFloat64Type = reflect.TypeFor[sql.NullFloat64]()
+var nullInt16Type = reflect.TypeFor[sql.NullInt16]()
+var nullInt32Type = reflect.TypeFor[sql.NullInt32]()
+var nullInt64Type = reflect.TypeFor[sql.NullInt64]()
+var jsonRawMessageType = reflect.TypeFor[json.RawMessage]()
+var myddlmakerJSON = reflect.TypeFor[jsonMarker]()
 
 func newColumn(f reflect.StructField) (*column, error) {
 	var invalidType bool
