@@ -149,6 +149,25 @@ func TestTable_UnknownType(t *testing.T) {
 	}
 }
 
+func TestTable_EmptyGeneratedExpression(t *testing.T) {
+	type NoValue struct {
+		Foo int64 `ddl:",generated"`
+	}
+	type EmptyValue struct {
+		Foo int64 `ddl:",generated="`
+	}
+	type EmptyParens struct {
+		Foo int64 `ddl:",generated=( )"`
+	}
+
+	for _, v := range []any{&NoValue{}, &EmptyValue{}, &EmptyParens{}} {
+		_, err := newTable(v)
+		if err == nil {
+			t.Errorf("%T: want some errors, got nil", v)
+		}
+	}
+}
+
 func TestCutComma(t *testing.T) {
 	tests := []struct {
 		in     string
