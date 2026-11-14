@@ -274,9 +274,10 @@ func newColumn(f reflect.StructField) (*column, error) {
 	// parse the tag of the field.
 	col.rawName = f.Name
 	name, remain, _ := strings.Cut(f.Tag.Get(StructTagName), ",")
-	if name == "" {
+	switch name {
+	case "":
 		name = camelToSnake(f.Name)
-	} else if name == "-" {
+	case "-":
 		return nil, errSkipColumn
 	}
 	col.name = name

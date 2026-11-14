@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -891,7 +890,13 @@ func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 	if err != nil {
 		t.Fatalf("failed to open db: %v", err)
 	}
-	defer db0.Close()
+	// db0 is used to drop the database in the cleanup,
+	// so it must be closed by t.Cleanup instead of defer.
+	t.Cleanup(func() {
+		if err := db0.Close(); err != nil {
+			t.Errorf("failed to close db: %v", err)
+		}
+	})
 
 	// create a new database
 	var buf2 [4]byte
@@ -904,6 +909,12 @@ func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 	if err != nil {
 		t.Fatalf("failed to create database %q: %v", dbName, err)
 	}
+	t.Cleanup(func() {
+		// ctx may already be canceled when the cleanup runs.
+		if _, err := db0.ExecContext(context.WithoutCancel(ctx), "DROP DATABASE "+dbName); err != nil {
+			t.Errorf("failed to drop database %q: %v", dbName, err)
+		}
+	})
 
 	cfg.DBName = dbName
 	cfg.MultiStatements = true
@@ -912,8 +923,9 @@ func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
 		t.Fatalf("failed to open db: %v", err)
 	}
 	t.Cleanup(func() {
-		db0.ExecContext(ctx, "DROP DATABASE "+dbName)
-		db.Close()
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close db: %v", err)
+		}
 	})
 	return db, true
 }
@@ -1469,7 +1481,11 @@ func TestMaker_GenerateGo(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to open db: %v", err)
 				}
-				defer db0.Close()
+				defer func() {
+					if err := db0.Close(); err != nil {
+						t.Errorf("failed to close db: %v", err)
+					}
+				}()
 
 				if mysqlOnlyDirs[filepath.Base(dir)] && isMariaDB(ctx, t, db0) {
 					t.Skip("the schema uses MySQL-specific features that MariaDB doesn't support")
@@ -1486,7 +1502,11 @@ func TestMaker_GenerateGo(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to create database %q: %v", dbName, err)
 				}
-				defer db0.ExecContext(ctx, "DROP DATABASE "+dbName)
+				defer func() {
+					if _, err := db0.ExecContext(ctx, "DROP DATABASE "+dbName); err != nil {
+						t.Errorf("failed to drop database %q: %v", dbName, err)
+					}
+				}()
 				t.Setenv("MYSQL_TEST_DB", dbName)
 
 				// apply the ddl
@@ -1496,7 +1516,11 @@ func TestMaker_GenerateGo(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to open db: %v", err)
 				}
-				defer db.Close()
+				defer func() {
+					if err := db.Close(); err != nil {
+						t.Errorf("failed to close db: %v", err)
+					}
+				}()
 				if _, err := db.ExecContext(ctx, string(ddl)); err != nil {
 					t.Errorf("failed to execute %q: %v", string(ddl), err)
 				}
@@ -1524,18 +1548,9 @@ func TestMaker_GenerateGo(t *testing.T) {
 	}
 }
 
-// goTool reports the path of the go tool to use to run the tests.
-// If possible, use the same Go used to run run.go, otherwise
-// fallback to the go version found in the PATH.
+// goTool reports the go tool to use to run the tests.
+// Since Go 1.19, "go test" places $GOROOT/bin at the beginning of PATH,
+// so "go" resolves to the same Go that runs this test.
 func goTool() string {
-	var exeSuffix string
-	if runtime.GOOS == "windows" {
-		exeSuffix = ".exe"
-	}
-	path := filepath.Join(runtime.GOROOT(), "bin", "go"+exeSuffix)
-	if _, err := os.Stat(path); err == nil {
-		return path
-	}
-	// Just run "go" from PATH
 	return "go"
 }
