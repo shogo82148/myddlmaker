@@ -52,6 +52,9 @@ func TestItem(t *testing.T) {
 	if item.Summary != "100 x 3" {
 		t.Errorf("unexpected summary: want %q, got %q", "100 x 3", item.Summary)
 	}
+	if item.Label != "(100,3" {
+		t.Errorf("unexpected label: want %q, got %q", "(100,3", item.Label)
+	}
 
 	// update
 	if err := UpdateItem(ctx, db, &Item{
@@ -76,5 +79,8 @@ func TestItem(t *testing.T) {
 	}
 	if items[0].Summary != "200 x 5" {
 		t.Errorf("unexpected summary: want %q, got %q", "200 x 5", items[0].Summary)
+	}
+	if items[0].Label != "(200,5" {
+		t.Errorf("unexpected label: want %q, got %q", "(200,5", items[0].Label)
 	}
 }

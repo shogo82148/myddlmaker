@@ -278,7 +278,12 @@ func newColumn(f reflect.StructField) (*column, error) {
 	col.name = name
 	for len(remain) > 0 {
 		var opt string
-		opt, remain, _ = cutComma(remain)
+		if strings.HasPrefix(remain, "generated=") {
+			// the expression may contain commas and parentheses in string literals.
+			opt, remain, _ = cutCommaSQL(remain)
+		} else {
+			opt, remain, _ = cutComma(remain)
+		}
 		name, val, ok := strings.Cut(opt, "=")
 		switch name {
 		case "null":
@@ -415,6 +420,54 @@ func cutComma(s string) (before string, after string, found bool) {
 	return s, "", false
 }
 
+// cutCommaSQL is like cutComma, but it ignores commas and parentheses
+// in SQL string literals and quoted identifiers.
+// If a quote is not closed, it falls back to cutComma.
+func cutCommaSQL(s string) (before string, after string, found bool) {
+	var cnt int
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '\'', '"', '`':
+			end := skipQuoted(s, i)
+			if end < 0 {
+				return cutComma(s)
+			}
+			i = end
+		case '(':
+			cnt++
+		case ')':
+			cnt--
+			if cnt < 0 {
+				cnt = 0
+			}
+		case ',':
+			if cnt == 0 {
+				return s[:i], s[i+1:], true
+			}
+		}
+	}
+	return s, "", false
+}
+
+// skipQuoted returns the index of the quote that closes the quote at s[i].
+// It returns -1 if the quote is not closed.
+func skipQuoted(s string, i int) int {
+	q := s[i]
+	for j := i + 1; j < len(s); j++ {
+		switch s[j] {
+		case '\\':
+			// backslash escapes are available in string literals, but not in quoted identifiers.
+			if q != '`' {
+				j++
+			}
+		case q:
+			// a doubled quote ('' or ``) is handled as a closing quote and an opening quote.
+			return j
+		}
+	}
+	return -1
+}
+
 // trimOuterParens removes the parentheses that wrap the whole expression.
 // e.g. "(a + b)" -> "a + b", but "(a) + (b)" is kept as is.
 func trimOuterParens(s string) string {
@@ -425,6 +478,12 @@ func trimOuterParens(s string) string {
 	var depth int
 	for i := 0; i < len(s); i++ {
 		switch s[i] {
+		case '\'', '"', '`':
+			end := skipQuoted(s, i)
+			if end < 0 {
+				return s
+			}
+			i = end
 		case '(':
 			depth++
 		case ')':
