@@ -1354,8 +1354,7 @@ func TestMaker_Generate(t *testing.T) {
 }
 
 func TestMaker_GenerateGo(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	fn := func(dir string) func(t *testing.T) {
 		// gen generates 'scheme.sql' and 'scheme_gen.go'

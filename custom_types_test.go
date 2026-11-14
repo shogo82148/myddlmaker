@@ -1,14 +1,12 @@
 package myddlmaker
 
 import (
-	"context"
 	"reflect"
 	"testing"
 )
 
 func TestJSON(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	db, ok := setupDatabase(ctx, t)
 	if !ok {
