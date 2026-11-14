@@ -264,6 +264,10 @@ type Order struct {
 	Total int32  `ddl:",generated=price * count"`
 	Label string `ddl:",generated=concat(price, ' x ', count),stored"`
 }
+
+func (*Order) PrimaryKey() *myddlmaker.PrimaryKey {
+	return myddlmaker.NewPrimaryKey("id")
+}
 ```
 
 ```sql
@@ -279,7 +283,8 @@ CREATE TABLE `order` (
 
 - The expression may contain commas and parentheses in string literals and quoted identifiers, e.g. `generated=concat('(', price, ',', count)`.
 - A pair of parentheses that wraps the whole expression is removed, so `generated=(a + b)` and `generated=a + b` are equivalent.
-- The values of generated columns are computed by the server. The generated `Insert*` and `Update*` functions ignore these fields, and `Select*` and `SelectAll*` return the computed values.
+- The values of generated columns are computed by the server. The generated `Insert*` function ignores these fields, and `Update*` doesn't set them. `Select*` and `SelectAll*` return the computed values.
+  If a `STORED` generated column is a part of the primary key, `Select*` and `Update*` use its field in the `WHERE` clause, as with other primary key columns. Set the field to the current computed value.
 - A generated column can't be combined with `auto` or `default=<value>`.
 - A `VIRTUAL` generated column can't be a part of the primary key. Use `stored` for such columns.
 
