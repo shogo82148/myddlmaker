@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -1549,18 +1548,9 @@ func TestMaker_GenerateGo(t *testing.T) {
 	}
 }
 
-// goTool reports the path of the go tool to use to run the tests.
-// If possible, use the same Go used to run run.go, otherwise
-// fallback to the go version found in the PATH.
+// goTool reports the go tool to use to run the tests.
+// Since Go 1.19, "go test" places $GOROOT/bin at the beginning of PATH,
+// so "go" resolves to the same Go that runs this test.
 func goTool() string {
-	var exeSuffix string
-	if runtime.GOOS == "windows" {
-		exeSuffix = ".exe"
-	}
-	path := filepath.Join(runtime.GOROOT(), "bin", "go"+exeSuffix)
-	if _, err := os.Stat(path); err == nil {
-		return path
-	}
-	// Just run "go" from PATH
 	return "go"
 }
