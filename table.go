@@ -332,6 +332,9 @@ func newColumn(f reflect.StructField) (*column, error) {
 			col.comment = val
 		case "generated":
 			col.generated = trimOuterParens(val)
+			if col.generated == "" {
+				return nil, errors.New("myddlmaker: generated param requires an expression")
+			}
 		case "stored":
 			v, err := parseBool("stored", val, ok)
 			if err != nil {
