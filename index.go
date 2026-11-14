@@ -329,3 +329,50 @@ func (idx *SpatialIndex) Comment(comment string) *SpatialIndex {
 	tmp.comment = comment
 	return &tmp
 }
+
+type checks interface {
+	Checks() []*Check
+}
+
+// Check is a CHECK constraint.
+// https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html
+// Implement the Checks method to define the CHECK constraints.
+// CHECK constraints are available in MySQL 8.0.16 or later.
+//
+//	func (*User) Checks() []*myddlmaker.Check {
+//		return []*myddlmaker.Check{
+//			// CONSTRAINT `chk_age` CHECK (`age` >= 0)
+//			myddlmaker.NewCheck("chk_age", "`age` >= 0"),
+//		}
+//	}
+type Check struct {
+	name        string
+	expr        string
+	notEnforced bool
+}
+
+// NewCheck returns a new CHECK constraint.
+// expr is a SQL expression that is embedded into the DDL as is.
+// The column names enclosed in back quotes in expr are validated.
+// The constraint names must be unique per schema.
+func NewCheck(name string, expr string) *Check {
+	if name == "" {
+		panic("name is missing")
+	}
+	expr = trimOuterParens(expr)
+	if expr == "" {
+		panic("expr is missing")
+	}
+	return &Check{
+		name: name,
+		expr: expr,
+	}
+}
+
+// NotEnforced returns a copy of chk with the NOT ENFORCED option.
+// MySQL creates the constraint but does not enforce it.
+func (chk *Check) NotEnforced() *Check {
+	tmp := *chk // shallow copy
+	tmp.notEnforced = true
+	return &tmp
+}
