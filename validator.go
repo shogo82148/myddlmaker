@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strings"
 )
 
 type validationError struct {
@@ -228,18 +229,18 @@ func (v *validator) validateChecks() {
 // Only the column names enclosed in back quotes are validated,
 // because it is hard to distinguish unquoted column names from keywords and functions.
 func (v *validator) validateCheck(table *table, chk *Check) {
-	seen := map[string]struct{}{}
-	for _, name := range quotedIdentifiers(chk.expr) {
-		if _, ok := seen[name]; ok {
+	seen := map[*column]struct{}{}
+	for _, ref := range quotedIdentifiers(chk.expr) {
+		col := findColumn(table, ref)
+		if col == nil {
+			v.SaveErrorf("table %q, check constraint %q: column %q not found", table.name, chk.name, ref)
 			continue
 		}
-		seen[name] = struct{}{}
-
-		col, ok := v.columnMap[[2]string{table.name, name}]
-		if !ok {
-			v.SaveErrorf("table %q, check constraint %q: column %q not found", table.name, chk.name, name)
+		if _, ok := seen[col]; ok {
 			continue
 		}
+		seen[col] = struct{}{}
+		name := col.name
 
 		// https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html
 		// > AUTO_INCREMENT columns are not permitted.
@@ -250,12 +251,24 @@ func (v *validator) validateCheck(table *table, chk *Check) {
 		// > Foreign key referential actions (ON UPDATE, ON DELETE) are prohibited on columns used in CHECK constraints.
 		// In fact, MySQL rejects only the actions that modify the columns.
 		for _, fk := range table.foreignKeys {
-			if !modifiesColumns(fk) || !slices.Contains(fk.columns, name) {
+			if !modifiesColumns(fk) || !slices.ContainsFunc(fk.columns, func(c string) bool { return strings.EqualFold(c, name) }) {
 				continue
 			}
 			v.SaveErrorf("table %q, check constraint %q: column %q cannot be used, because it is modified by the referential action of foreign key %q", table.name, chk.name, name, fk.name)
 		}
 	}
+}
+
+// findColumn returns the column of table named name.
+// Column names are case-insensitive in MySQL.
+// https://dev.mysql.com/doc/refman/8.0/en/identifier-case-sensitivity.html
+func findColumn(table *table, name string) *column {
+	for _, col := range table.columns {
+		if strings.EqualFold(col.name, name) {
+			return col
+		}
+	}
+	return nil
 }
 
 // modifiesColumns reports whether the referential actions of fk modify the columns of the child table.

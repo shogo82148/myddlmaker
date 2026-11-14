@@ -504,11 +504,34 @@ func trimOuterParens(s string) string {
 }
 
 // quotedIdentifiers returns the identifiers enclosed in back quotes in the SQL expression s.
-// String literals are skipped, and the identifiers followed by "(" are treated as function names.
+// String literals and comments are skipped, and the identifiers followed by "(" are treated as function names.
 func quotedIdentifiers(s string) []string {
 	var ret []string
 	for i := 0; i < len(s); i++ {
 		switch s[i] {
+		case '/':
+			// https://dev.mysql.com/doc/refman/8.0/en/comments.html
+			if !strings.HasPrefix(s[i:], "/*") {
+				continue
+			}
+			if strings.HasPrefix(s[i:], "/*!") {
+				// MySQL executes the content of executable comments.
+				// So we scan it as a part of the expression.
+				i += len("/*!") - 1
+				continue
+			}
+			end := strings.Index(s[i+len("/*"):], "*/")
+			if end < 0 {
+				return ret
+			}
+			i += len("/*") + end + len("*/") - 1
+		case '#':
+			i = skipLineComment(s, i)
+		case '-':
+			// "--" starts a comment only if it is followed by a whitespace or a control character.
+			if strings.HasPrefix(s[i:], "--") && (i+2 == len(s) || s[i+2] <= ' ') {
+				i = skipLineComment(s, i)
+			}
 		case '\'', '"':
 			end := skipQuoted(s, i)
 			if end < 0 {
@@ -540,4 +563,13 @@ func quotedIdentifiers(s string) []string {
 		}
 	}
 	return ret
+}
+
+// skipLineComment returns the index of the end of the line comment that starts at s[i].
+func skipLineComment(s string, i int) int {
+	end := strings.IndexByte(s[i:], '\n')
+	if end < 0 {
+		return len(s)
+	}
+	return i + end
 }

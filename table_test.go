@@ -413,6 +413,23 @@ func TestQuotedIdentifiers(t *testing.T) {
 		{in: "`char_length`(`name`) > 0", want: []string{"name"}},
 		{in: "`char_length` (`name`) > 0", want: []string{"name"}},
 
+		// comments are ignored
+		{in: "`age` > 0 /* `old_age` */", want: []string{"age"}},
+		{in: "`age` > 0 /* `old_age` */ AND `name` <> ''", want: []string{"age", "name"}},
+		{in: "`age` > 0 -- `old_age`\nAND `name` <> ''", want: []string{"age", "name"}},
+		{in: "`age` > 0 # `old_age`\nAND `name` <> ''", want: []string{"age", "name"}},
+		{in: "`age` > 0 /* `old_age`", want: []string{"age"}},
+		{in: "`age` /* \n */ > 0", want: []string{"age"}},
+		{in: "'/* `old_age` */' <> `name`", want: []string{"name"}},
+
+		// "--" without a following whitespace is not a comment
+		{in: "`age`--`min_age` > 0", want: []string{"age", "min_age"}},
+		{in: "`age` / `count` > 0", want: []string{"age", "count"}},
+
+		// executable comments are executed by MySQL
+		{in: "`age` > 0 /*! AND `name` <> '' */", want: []string{"age", "name"}},
+		{in: "`age` > 0 /*!80016 AND `name` <> '' */", want: []string{"age", "name"}},
+
 		// unclosed quotes
 		{in: "`age` > 0 AND `name", want: []string{"age"}},
 		{in: "`age` > 0 AND 'name", want: []string{"age"}},

@@ -442,6 +442,7 @@ func (*Foo32) PrimaryKey() *PrimaryKey {
 func (*Foo32) Checks() []*Check {
 	return []*Check{
 		NewCheck("chk_foo32_age", "`age` >= 0"),
+		NewCheck("chk_foo32_age_upper", "`AGE` < 200"),
 		NewCheck("chk_foo32_name", "(char_length(`name`) > 0)"),
 		NewCheck("chk_foo32_status", "`status` IN ('active', 'inactive')").NotEnforced(),
 	}
@@ -476,6 +477,9 @@ func (*Foo33) Checks() []*Check {
 		NewCheck("chk_foo33_parent_id", "`parent_id` > 0"),
 		NewCheck("chk_foo33_duplicated", "`age` > 0"),
 		NewCheck("chk_foo33_duplicated", "`age` < 200"),
+
+		// column names are case-insensitive.
+		NewCheck("chk_foo33_upper", "`AGE` > 0 AND `Parent_ID` > 0 AND `Unknown` > 0"),
 	}
 }
 
@@ -961,6 +965,7 @@ func TestMaker_Generate(t *testing.T) {
 		"    `name` VARCHAR(191) NOT NULL,\n"+
 		"    `status` VARCHAR(191) NOT NULL,\n"+
 		"    CONSTRAINT `chk_foo32_age` CHECK (`age` >= 0),\n"+
+		"    CONSTRAINT `chk_foo32_age_upper` CHECK (`AGE` < 200),\n"+
 		"    CONSTRAINT `chk_foo32_name` CHECK (char_length(`name`) > 0),\n"+
 		"    CONSTRAINT `chk_foo32_status` CHECK (`status` IN ('active', 'inactive')) NOT ENFORCED,\n"+
 		"    PRIMARY KEY (`id`)\n"+
@@ -1338,6 +1343,8 @@ func TestMaker_Generate(t *testing.T) {
 		`table "foo33", check constraint "chk_foo33_unknown": column "unknown_column" not found`,
 		`table "foo33", check constraint "chk_foo33_id": auto increment column "id" cannot be used`,
 		`table "foo33", check constraint "chk_foo33_parent_id": column "parent_id" cannot be used, because it is modified by the referential action of foreign key "fk_foo33_parent_id"`,
+		`table "foo33", check constraint "chk_foo33_upper": column "parent_id" cannot be used, because it is modified by the referential action of foreign key "fk_foo33_parent_id"`,
+		`table "foo33", check constraint "chk_foo33_upper": column "Unknown" not found`,
 	})
 
 	// CHECK constraint names must be unique per schema.
