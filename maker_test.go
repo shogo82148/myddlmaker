@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -800,6 +801,18 @@ func (*Fkc8) ForeignKeys() []*ForeignKey {
 
 func testMaker(t *testing.T, structs []any, ddl string) {
 	t.Helper()
+	testMakerWithOptions(t, structs, ddl, false)
+}
+
+// testMakerMySQLOnly is same as testMaker, but it skips the syntax check on MariaDB,
+// because the DDL uses MySQL-specific features that MariaDB doesn't support.
+func testMakerMySQLOnly(t *testing.T, structs []any, ddl string) {
+	t.Helper()
+	testMakerWithOptions(t, structs, ddl, true)
+}
+
+func testMakerWithOptions(t *testing.T, structs []any, ddl string, mysqlOnly bool) {
+	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -830,11 +843,25 @@ func testMaker(t *testing.T, structs []any, ddl string) {
 	if !ok {
 		return
 	}
+	if mysqlOnly && isMariaDB(ctx, t, db) {
+		t.Log("skip the syntax check on MariaDB")
+		return
+	}
 
 	// check the ddl syntax
 	if _, err := db.ExecContext(ctx, got); err != nil {
 		t.Errorf("failed to execute %q: %v", got, err)
 	}
+}
+
+// isMariaDB reports whether the server is MariaDB.
+func isMariaDB(ctx context.Context, t testing.TB, db *sql.DB) bool {
+	t.Helper()
+	var version string
+	if err := db.QueryRowContext(ctx, "SELECT VERSION()").Scan(&version); err != nil {
+		t.Fatalf("failed to get the server version: %v", err)
+	}
+	return strings.Contains(strings.ToLower(version), "mariadb")
 }
 
 func setupDatabase(ctx context.Context, t testing.TB) (db *sql.DB, ok bool) {
@@ -924,7 +951,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo2{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo2_customized`;\n\n"+
 		"CREATE TABLE `foo2_customized` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
@@ -944,7 +971,7 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
-	testMaker(t, []any{&Foo29{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo29{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo29`;\n\n"+
 		"CREATE TABLE `foo29` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -957,7 +984,7 @@ func TestMaker_Generate(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	// CHECK constraints
-	testMaker(t, []any{&Foo32{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo32{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo32`;\n\n"+
 		"CREATE TABLE `foo32` (\n"+
 		"    `id` INTEGER NOT NULL,\n"+
@@ -1042,7 +1069,7 @@ func TestMaker_Generate(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	// invisible index
-	testMaker(t, []any{&Foo8{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo8{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo8`;\n\n"+
 		"CREATE TABLE `foo8` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
@@ -1063,7 +1090,7 @@ func TestMaker_Generate(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	// FULLTEXT INDEX
-	testMaker(t, []any{&Foo10{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo10{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo10`;\n\n"+
 		"CREATE TABLE `foo10` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
@@ -1074,7 +1101,7 @@ func TestMaker_Generate(t *testing.T) {
 		"SET foreign_key_checks=1;\n")
 
 	// SPATIAL INDEX
-	testMaker(t, []any{&Foo11{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo11{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo11`;\n\n"+
 		"CREATE TABLE `foo11` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
@@ -1106,7 +1133,7 @@ func TestMaker_Generate(t *testing.T) {
 
 	// Spatial Data Types
 	// https://dev.mysql.com/doc/refman/8.0/en/spatial-type-overview.html
-	testMaker(t, []any{&Foo22{}}, "SET foreign_key_checks=0;\n\n"+
+	testMakerMySQLOnly(t, []any{&Foo22{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo22`;\n\n"+
 		"CREATE TABLE `foo22` (\n"+
 		"    `id` INTEGER NOT NULL AUTO_INCREMENT,\n"+
@@ -1356,6 +1383,13 @@ func TestMaker_Generate(t *testing.T) {
 func TestMaker_GenerateGo(t *testing.T) {
 	ctx := t.Context()
 
+	// mysqlOnlyDirs are the test cases that use MySQL-specific features.
+	// they are skipped on MariaDB.
+	mysqlOnlyDirs := map[string]bool{
+		"check_constraint": true, // CHECK ... NOT ENFORCED
+		"generated_column": true, // NOT NULL on generated columns
+	}
+
 	fn := func(dir string) func(t *testing.T) {
 		// gen generates 'scheme.sql' and 'scheme_gen.go'
 		gen := func(t *testing.T) error {
@@ -1417,6 +1451,10 @@ func TestMaker_GenerateGo(t *testing.T) {
 					t.Fatalf("failed to open db: %v", err)
 				}
 				defer db0.Close()
+
+				if mysqlOnlyDirs[filepath.Base(dir)] && isMariaDB(ctx, t, db0) {
+					t.Skip("the schema uses MySQL-specific features that MariaDB doesn't support")
+				}
 
 				// create a new database
 				var buf2 [4]byte
