@@ -52,6 +52,7 @@ type table struct {
 	foreignKeys     []*ForeignKey
 	fullTextIndexes []*FullTextIndex
 	spatialIndexes  []*SpatialIndex
+	checks          []*Check
 }
 
 func newTable(s any) (*table, error) {
@@ -107,6 +108,9 @@ func newTable(s any) (*table, error) {
 	}
 	if idx, ok := iface.(spatialIndex); ok {
 		tbl.spatialIndexes = idx.SpatialIndexes()
+	}
+	if chk, ok := iface.(checks); ok {
+		tbl.checks = chk.Checks()
 	}
 
 	return &tbl, nil
@@ -497,4 +501,43 @@ func trimOuterParens(s string) string {
 		return s
 	}
 	return strings.TrimSpace(s[1 : len(s)-1])
+}
+
+// quotedIdentifiers returns the identifiers enclosed in back quotes in the SQL expression s.
+// String literals are skipped, and the identifiers followed by "(" are treated as function names.
+func quotedIdentifiers(s string) []string {
+	var ret []string
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '\'', '"':
+			end := skipQuoted(s, i)
+			if end < 0 {
+				return ret
+			}
+			i = end
+		case '`':
+			var buf strings.Builder
+			for {
+				end := skipQuoted(s, i)
+				if end < 0 {
+					return ret
+				}
+				buf.WriteString(s[i+1 : end])
+				i = end
+				// a doubled back quote is an escaped back quote.
+				if i+1 < len(s) && s[i+1] == '`' {
+					buf.WriteByte('`')
+					i++
+					continue
+				}
+				break
+			}
+			if strings.HasPrefix(strings.TrimLeft(s[i+1:], " \t\r\n"), "(") {
+				// it is a function name.
+				continue
+			}
+			ret = append(ret, buf.String())
+		}
+	}
+	return ret
 }

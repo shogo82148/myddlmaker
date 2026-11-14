@@ -390,3 +390,70 @@ func TestTrimOuterParens(t *testing.T) {
 		}
 	}
 }
+
+func TestQuotedIdentifiers(t *testing.T) {
+	tests := []struct {
+		in   string
+		want []string
+	}{
+		{in: "age > 0", want: nil},
+		{in: "`age` > 0", want: []string{"age"}},
+		{in: "`min` <= `max`", want: []string{"min", "max"}},
+		{in: "char_length(`name`) > 0", want: []string{"name"}},
+
+		// escaped back quotes
+		{in: "`a``b` > 0", want: []string{"a`b"}},
+
+		// back quotes in string literals are ignored
+		{in: "`status` IN ('`active`', \"`inactive`\")", want: []string{"status"}},
+		{in: "`name` <> 'it''s `quoted`'", want: []string{"name"}},
+		{in: "`name` <> 'it\\'s `quoted`'", want: []string{"name"}},
+
+		// function names
+		{in: "`char_length`(`name`) > 0", want: []string{"name"}},
+		{in: "`char_length` (`name`) > 0", want: []string{"name"}},
+
+		// unclosed quotes
+		{in: "`age` > 0 AND `name", want: []string{"age"}},
+		{in: "`age` > 0 AND 'name", want: []string{"age"}},
+	}
+	for _, tt := range tests {
+		got := quotedIdentifiers(tt.in)
+		if diff := cmp.Diff(tt.want, got); diff != "" {
+			t.Errorf("quotedIdentifiers(%q) mismatch (-want/+got):\n%s", tt.in, diff)
+		}
+	}
+}
+
+func TestNewCheck(t *testing.T) {
+	chk := NewCheck("chk", " (`age` >= 0) ")
+	if chk.expr != "`age` >= 0" {
+		t.Errorf("unexpected expr: %q", chk.expr)
+	}
+	if chk.notEnforced {
+		t.Error("want enforced, but not")
+	}
+
+	chk2 := chk.NotEnforced()
+	if !chk2.notEnforced {
+		t.Error("want not enforced, but enforced")
+	}
+	if chk.notEnforced {
+		t.Error("NotEnforced must not modify the original")
+	}
+
+	for _, tt := range []struct{ name, expr string }{
+		{"", "`age` >= 0"},
+		{"chk", ""},
+		{"chk", " () "},
+	} {
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("NewCheck(%q, %q): want panic, but not", tt.name, tt.expr)
+				}
+			}()
+			NewCheck(tt.name, tt.expr)
+		}()
+	}
+}

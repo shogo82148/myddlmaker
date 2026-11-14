@@ -320,6 +320,19 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 		}
 		io.WriteString(w, ",\n")
 	}
+
+	for _, chk := range table.checks {
+		// https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html
+		io.WriteString(w, "    CONSTRAINT ")
+		io.WriteString(w, quote(chk.name))
+		io.WriteString(w, " CHECK (")
+		io.WriteString(w, chk.expr)
+		io.WriteString(w, ")")
+		if chk.notEnforced {
+			io.WriteString(w, " NOT ENFORCED")
+		}
+		io.WriteString(w, ",\n")
+	}
 }
 
 // quote quotes s with `s`.

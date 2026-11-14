@@ -428,6 +428,100 @@ func (*Foo31) PrimaryKey() *PrimaryKey {
 	return NewPrimaryKey("virtual", "stored")
 }
 
+type Foo32 struct {
+	ID     int32
+	Age    int32
+	Name   string
+	Status string
+}
+
+func (*Foo32) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo32) Checks() []*Check {
+	return []*Check{
+		NewCheck("chk_foo32_age", "`age` >= 0"),
+		NewCheck("chk_foo32_name", "(char_length(`name`) > 0)"),
+		NewCheck("chk_foo32_status", "`status` IN ('active', 'inactive')").NotEnforced(),
+	}
+}
+
+type Foo33 struct {
+	ID       int32 `ddl:",auto"`
+	ParentID int32
+	Age      int32
+}
+
+func (*Foo33) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo33) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Foo33) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		NewForeignKey("fk_foo33_parent_id", []string{"parent_id"}, "foo33", []string{"id"}).OnUpdate(ForeignKeyOptionCascade),
+	}
+}
+
+func (*Foo33) Checks() []*Check {
+	return []*Check{
+		NewCheck("chk_foo33_unknown", "`unknown_column` > 0"),
+		NewCheck("chk_foo33_id", "`id` > 0"),
+		NewCheck("chk_foo33_parent_id", "`parent_id` > 0"),
+		NewCheck("chk_foo33_duplicated", "`age` > 0"),
+		NewCheck("chk_foo33_duplicated", "`age` < 200"),
+	}
+}
+
+type Foo34 struct {
+	ID       int32
+	ParentID int32
+}
+
+func (*Foo34) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo34) Indexes() []*Index {
+	return []*Index{
+		NewIndex("idx_parent_id", "parent_id"),
+	}
+}
+
+func (*Foo34) ForeignKeys() []*ForeignKey {
+	return []*ForeignKey{
+		// ON DELETE CASCADE doesn't modify the columns, so it can be used with CHECK constraints.
+		NewForeignKey("fk_foo34_parent_id", []string{"parent_id"}, "foo1", []string{"id"}).OnDelete(ForeignKeyOptionCascade),
+	}
+}
+
+func (*Foo34) Checks() []*Check {
+	return []*Check{
+		NewCheck("chk_foo34_parent_id", "`parent_id` > 0"),
+	}
+}
+
+type Foo35 struct {
+	ID  int32
+	Age int32
+}
+
+func (*Foo35) PrimaryKey() *PrimaryKey {
+	return NewPrimaryKey("id")
+}
+
+func (*Foo35) Checks() []*Check {
+	return []*Check{
+		NewCheck("chk_foo32_age", "`age` >= 0"),
+	}
+}
+
 type Fkp1 struct {
 	ID string
 }
@@ -858,6 +952,39 @@ func TestMaker_Generate(t *testing.T) {
 		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
 		"SET foreign_key_checks=1;\n")
 
+	// CHECK constraints
+	testMaker(t, []any{&Foo32{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo32`;\n\n"+
+		"CREATE TABLE `foo32` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `age` INTEGER NOT NULL,\n"+
+		"    `name` VARCHAR(191) NOT NULL,\n"+
+		"    `status` VARCHAR(191) NOT NULL,\n"+
+		"    CONSTRAINT `chk_foo32_age` CHECK (`age` >= 0),\n"+
+		"    CONSTRAINT `chk_foo32_name` CHECK (char_length(`name`) > 0),\n"+
+		"    CONSTRAINT `chk_foo32_status` CHECK (`status` IN ('active', 'inactive')) NOT ENFORCED,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
+	// CHECK constraints with a foreign key
+	testMaker(t, []any{&Foo1{}, &Foo34{}}, "SET foreign_key_checks=0;\n\n"+
+		"DROP TABLE IF EXISTS `foo1`;\n\n"+
+		"CREATE TABLE `foo1` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n\n"+
+		"DROP TABLE IF EXISTS `foo34`;\n\n"+
+		"CREATE TABLE `foo34` (\n"+
+		"    `id` INTEGER NOT NULL,\n"+
+		"    `parent_id` INTEGER NOT NULL,\n"+
+		"    INDEX `idx_parent_id` (`parent_id`),\n"+
+		"    CONSTRAINT `fk_foo34_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `foo1` (`id`) ON DELETE CASCADE,\n"+
+		"    CONSTRAINT `chk_foo34_parent_id` CHECK (`parent_id` > 0),\n"+
+		"    PRIMARY KEY (`id`)\n"+
+		") ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 DEFAULT COLLATE=utf8mb4_bin;\n\n"+
+		"SET foreign_key_checks=1;\n")
+
 	testMaker(t, []any{&Foo1{}, &Foo4{}}, "SET foreign_key_checks=0;\n\n"+
 		"DROP TABLE IF EXISTS `foo1`;\n\n"+
 		"CREATE TABLE `foo1` (\n"+
@@ -1204,6 +1331,18 @@ func TestMaker_Generate(t *testing.T) {
 
 	testMakerError(t, []any{&Foo31{}}, []string{
 		`table "foo31", column "virtual": virtual generated column cannot be a primary key`,
+	})
+
+	testMakerError(t, []any{&Foo33{}}, []string{
+		`table "foo33": duplicated name of check constraint: "chk_foo33_duplicated"`,
+		`table "foo33", check constraint "chk_foo33_unknown": column "unknown_column" not found`,
+		`table "foo33", check constraint "chk_foo33_id": auto increment column "id" cannot be used`,
+		`table "foo33", check constraint "chk_foo33_parent_id": column "parent_id" cannot be used, because it is modified by the referential action of foreign key "fk_foo33_parent_id"`,
+	})
+
+	// CHECK constraint names must be unique per schema.
+	testMakerError(t, []any{&Foo32{}, &Foo35{}}, []string{
+		`table "foo35": duplicated name of check constraint: "chk_foo32_age"`,
 	})
 }
 

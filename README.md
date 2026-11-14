@@ -371,6 +371,35 @@ func (*User) ForeignKeys() []*myddlmaker.ForeignKey {
 }
 ```
 
+## Check Constraints
+
+Implement the `Checks` method to define the CHECK constraints.
+CHECK constraints are available in MySQL 8.0.16 or later.
+
+```go
+func (*User) Checks() []*myddlmaker.Check {
+    return []*myddlmaker.Check{
+        // CONSTRAINT `chk_age` CHECK (`age` >= 0)
+        myddlmaker.NewCheck("chk_age", "`age` >= 0"),
+
+        // CONSTRAINT `chk_score` CHECK (`min_score` <= `max_score`)
+        myddlmaker.NewCheck("chk_score", "`min_score` <= `max_score`"),
+
+        // CONSTRAINT `chk_status` CHECK (`status` IN ('active', 'inactive')) NOT ENFORCED
+        myddlmaker.NewCheck("chk_status", "`status` IN ('active', 'inactive')").NotEnforced(),
+    }
+}
+```
+
+The expression is embedded into the DDL as is.
+The column names enclosed in back quotes are validated:
+myddlmaker reports an error if the column doesn't exist,
+if the column is an `AUTO_INCREMENT` column,
+or if the column is modified by a referential action of a foreign key (`ON UPDATE CASCADE`, `ON UPDATE SET NULL` or `ON DELETE SET NULL`).
+Column names without back quotes are not validated, so we recommend quoting them.
+
+The names of CHECK constraints must be unique per schema.
+
 ## Spatial Indexes
 
 Implement the `SpatialIndexes` method to define the spatial indexes.
