@@ -27,9 +27,13 @@ jobs:
           - "1.25"
           - "1.24"
         mysql:
-          - "9.7"
-          - "8.4"
+          - "9.7" # LTS
+          - "8.4" # LTS
           - "8.0"
+          - "mariadb-12.3" # LTS
+          - "mariadb-11.8" # LTS
+          - "mariadb-11.4" # LTS
+          - "mariadb-10.11" # LTS
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v7.0.1
