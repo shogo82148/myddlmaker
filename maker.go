@@ -92,7 +92,7 @@ func (m *Maker) GenerateFile() error {
 	if err != nil {
 		return fmt.Errorf("myddlmaker: failed to open %q: %w", m.config.OutFilePath, err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // the error is checked by the explicit Close below
 
 	if err := m.Generate(f); err != nil {
 		return fmt.Errorf("myddlmaker: failed to generate ddl: %w", err)
@@ -141,7 +141,7 @@ func (m *Maker) validate() error {
 	return v.Validate()
 }
 
-func (m *Maker) generateTable(w io.Writer, table *table) {
+func (m *Maker) generateTable(w *bytes.Buffer, table *table) {
 	fmt.Fprintf(w, "\nDROP TABLE IF EXISTS %s;\n\n", quote(table.name))
 	fmt.Fprintf(w, "CREATE TABLE %s (\n", quote(table.name))
 	for _, col := range table.columns {
@@ -168,65 +168,65 @@ func (m *Maker) generateTable(w io.Writer, table *table) {
 	fmt.Fprintf(w, ";\n\n")
 }
 
-func (m *Maker) generateColumn(w io.Writer, col *column) {
-	io.WriteString(w, "    ")
-	io.WriteString(w, quote(col.name))
-	io.WriteString(w, " ")
-	io.WriteString(w, col.typ)
+func (m *Maker) generateColumn(w *bytes.Buffer, col *column) {
+	w.WriteString("    ")
+	w.WriteString(quote(col.name))
+	w.WriteString(" ")
+	w.WriteString(col.typ)
 	if col.size != 0 {
 		fmt.Fprintf(w, "(%d)", col.size)
 	}
 	if col.charset != "" {
-		io.WriteString(w, " CHARACTER SET ")
-		io.WriteString(w, col.charset)
+		w.WriteString(" CHARACTER SET ")
+		w.WriteString(col.charset)
 	}
 	if col.collate != "" {
-		io.WriteString(w, " COLLATE ")
-		io.WriteString(w, col.collate)
+		w.WriteString(" COLLATE ")
+		w.WriteString(col.collate)
 	}
 	if col.unsigned {
-		io.WriteString(w, " UNSIGNED")
+		w.WriteString(" UNSIGNED")
 	}
 	if col.generated != "" {
 		// https://dev.mysql.com/doc/refman/8.0/en/create-table-generated-columns.html
 		fmt.Fprintf(w, " GENERATED ALWAYS AS (%s)", col.generated)
 		if col.stored {
-			io.WriteString(w, " STORED")
+			w.WriteString(" STORED")
 		} else {
-			io.WriteString(w, " VIRTUAL")
+			w.WriteString(" VIRTUAL")
 		}
 	}
 	if col.null {
-		io.WriteString(w, " NULL")
+		w.WriteString(" NULL")
 	} else {
-		io.WriteString(w, " NOT NULL")
+		w.WriteString(" NOT NULL")
 	}
 	if col.srid != nil {
 		fmt.Fprintf(w, " SRID %d", valInt(col.srid))
 	}
 	if col.def != "" {
-		io.WriteString(w, " DEFAULT ")
-		io.WriteString(w, col.def)
+		w.WriteString(" DEFAULT ")
+		w.WriteString(col.def)
 	}
 	if col.invisible {
 		// https://dev.mysql.com/doc/refman/8.0/en/invisible-columns.html
-		io.WriteString(w, " INVISIBLE")
+		w.WriteString(" INVISIBLE")
 	}
 	if col.autoIncr {
-		io.WriteString(w, " AUTO_INCREMENT")
+		w.WriteString(" AUTO_INCREMENT")
 	}
 	if col.comment != "" {
-		io.WriteString(w, " COMMENT ")
-		io.WriteString(w, stringQuote(col.comment))
+		w.WriteString(" COMMENT ")
+		w.WriteString(stringQuote(col.comment))
 	}
-	io.WriteString(w, ",\n")
+	w.WriteString(",\n")
 }
 
-func (m *Maker) generateIndex(w io.Writer, table *table) {
+func (m *Maker) generateIndex(w *bytes.Buffer, table *table) {
 	for _, idx := range table.indexes {
-		io.WriteString(w, "    INDEX ")
-		io.WriteString(w, quote(idx.name))
-		io.WriteString(w, " (")
+		w.WriteString("    INDEX ")
+		w.WriteString(quote(idx.name))
+		w.WriteString(" (")
 		// Add the column name and the order.
 		columnWithOrder := make([]string, 0, len(idx.columns))
 		for _, column := range idx.columns {
@@ -236,102 +236,102 @@ func (m *Maker) generateIndex(w io.Writer, table *table) {
 				columnWithOrder = append(columnWithOrder, quote(column))
 			}
 		}
-		io.WriteString(w, strings.Join(columnWithOrder, ", "))
-		io.WriteString(w, ")")
+		w.WriteString(strings.Join(columnWithOrder, ", "))
+		w.WriteString(")")
 		if idx.invisible {
-			io.WriteString(w, " INVISIBLE")
+			w.WriteString(" INVISIBLE")
 		}
 		if idx.comment != "" {
-			io.WriteString(w, " COMMENT ")
-			io.WriteString(w, stringQuote(idx.comment))
+			w.WriteString(" COMMENT ")
+			w.WriteString(stringQuote(idx.comment))
 		}
-		io.WriteString(w, ",\n")
+		w.WriteString(",\n")
 	}
 
 	for _, idx := range table.uniqueIndexes {
-		io.WriteString(w, "    UNIQUE ")
-		io.WriteString(w, quote(idx.name))
-		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
-		io.WriteString(w, ")")
+		w.WriteString("    UNIQUE ")
+		w.WriteString(quote(idx.name))
+		w.WriteString(" (")
+		w.WriteString(strings.Join(quoteAll(idx.columns), ", "))
+		w.WriteString(")")
 		if idx.invisible {
-			io.WriteString(w, " INVISIBLE")
+			w.WriteString(" INVISIBLE")
 		}
 		if idx.comment != "" {
-			io.WriteString(w, " COMMENT ")
-			io.WriteString(w, stringQuote(idx.comment))
+			w.WriteString(" COMMENT ")
+			w.WriteString(stringQuote(idx.comment))
 		}
-		io.WriteString(w, ",\n")
+		w.WriteString(",\n")
 	}
 
 	for _, idx := range table.fullTextIndexes {
-		io.WriteString(w, "    FULLTEXT INDEX ")
-		io.WriteString(w, quote(idx.name))
-		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
-		io.WriteString(w, ")")
+		w.WriteString("    FULLTEXT INDEX ")
+		w.WriteString(quote(idx.name))
+		w.WriteString(" (")
+		w.WriteString(strings.Join(quoteAll(idx.columns), ", "))
+		w.WriteString(")")
 		if idx.invisible {
-			io.WriteString(w, " INVISIBLE")
+			w.WriteString(" INVISIBLE")
 		}
 		if idx.parser != "" {
-			io.WriteString(w, " WITH PARSER ")
-			io.WriteString(w, idx.parser)
+			w.WriteString(" WITH PARSER ")
+			w.WriteString(idx.parser)
 		}
 		if idx.comment != "" {
-			io.WriteString(w, " COMMENT ")
-			io.WriteString(w, stringQuote(idx.comment))
+			w.WriteString(" COMMENT ")
+			w.WriteString(stringQuote(idx.comment))
 		}
-		io.WriteString(w, ",\n")
+		w.WriteString(",\n")
 	}
 
 	for _, idx := range table.spatialIndexes {
-		io.WriteString(w, "    SPATIAL INDEX ")
-		io.WriteString(w, quote(idx.name))
-		io.WriteString(w, " (")
-		io.WriteString(w, quote(idx.column))
-		io.WriteString(w, ")")
+		w.WriteString("    SPATIAL INDEX ")
+		w.WriteString(quote(idx.name))
+		w.WriteString(" (")
+		w.WriteString(quote(idx.column))
+		w.WriteString(")")
 		if idx.invisible {
-			io.WriteString(w, " INVISIBLE")
+			w.WriteString(" INVISIBLE")
 		}
 		if idx.comment != "" {
-			io.WriteString(w, " COMMENT ")
-			io.WriteString(w, stringQuote(idx.comment))
+			w.WriteString(" COMMENT ")
+			w.WriteString(stringQuote(idx.comment))
 		}
-		io.WriteString(w, ",\n")
+		w.WriteString(",\n")
 	}
 
 	for _, idx := range table.foreignKeys {
-		io.WriteString(w, "    CONSTRAINT ")
-		io.WriteString(w, quote(idx.name))
-		io.WriteString(w, " FOREIGN KEY (")
-		io.WriteString(w, strings.Join(quoteAll(idx.columns), ", "))
-		io.WriteString(w, ") REFERENCES ")
-		io.WriteString(w, quote(idx.table))
-		io.WriteString(w, " (")
-		io.WriteString(w, strings.Join(quoteAll(idx.references), ", "))
-		io.WriteString(w, ")")
+		w.WriteString("    CONSTRAINT ")
+		w.WriteString(quote(idx.name))
+		w.WriteString(" FOREIGN KEY (")
+		w.WriteString(strings.Join(quoteAll(idx.columns), ", "))
+		w.WriteString(") REFERENCES ")
+		w.WriteString(quote(idx.table))
+		w.WriteString(" (")
+		w.WriteString(strings.Join(quoteAll(idx.references), ", "))
+		w.WriteString(")")
 		if idx.onDelete != "" {
-			io.WriteString(w, " ON DELETE ")
-			io.WriteString(w, string(idx.onDelete))
+			w.WriteString(" ON DELETE ")
+			w.WriteString(string(idx.onDelete))
 		}
 		if idx.onUpdate != "" {
-			io.WriteString(w, " ON UPDATE ")
-			io.WriteString(w, string(idx.onUpdate))
+			w.WriteString(" ON UPDATE ")
+			w.WriteString(string(idx.onUpdate))
 		}
-		io.WriteString(w, ",\n")
+		w.WriteString(",\n")
 	}
 
 	for _, chk := range table.checks {
 		// https://dev.mysql.com/doc/refman/8.0/en/create-table-check-constraints.html
-		io.WriteString(w, "    CONSTRAINT ")
-		io.WriteString(w, quote(chk.name))
-		io.WriteString(w, " CHECK (")
-		io.WriteString(w, chk.expr)
-		io.WriteString(w, ")")
+		w.WriteString("    CONSTRAINT ")
+		w.WriteString(quote(chk.name))
+		w.WriteString(" CHECK (")
+		w.WriteString(chk.expr)
+		w.WriteString(")")
 		if chk.notEnforced {
-			io.WriteString(w, " NOT ENFORCED")
+			w.WriteString(" NOT ENFORCED")
 		}
-		io.WriteString(w, ",\n")
+		w.WriteString(",\n")
 	}
 }
 
@@ -383,7 +383,7 @@ func stringQuote(s string) string {
 	buf.Grow(len(s) + len("''"))
 
 	buf.WriteByte('\'')
-	stringQuoter.WriteString(&buf, s)
+	stringQuoter.WriteString(&buf, s) //nolint:errcheck // strings.Builder never returns any error
 	buf.WriteByte('\'')
 	return buf.String()
 }
@@ -407,7 +407,7 @@ func (m *Maker) GenerateGoFile() error {
 	if err != nil {
 		return fmt.Errorf("myddlmaker: failed to open %q: %w", m.config.OutGoFilePath, err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck // the error is checked by the explicit Close below
 
 	if err := m.GenerateGo(f); err != nil {
 		return fmt.Errorf("myddlmaker: failed to generate go file: %w", err)
@@ -435,8 +435,8 @@ func (m *Maker) GenerateGo(w io.Writer) error {
 	return err
 }
 
-func (m *Maker) generateGoHeader(w io.Writer) {
-	io.WriteString(w, "// Code generated by https://github.com/shogo82148/myddlmaker; DO NOT EDIT.\n\n")
+func (m *Maker) generateGoHeader(w *bytes.Buffer) {
+	w.WriteString("// Code generated by https://github.com/shogo82148/myddlmaker; DO NOT EDIT.\n\n")
 	fmt.Fprintf(w, "//go:build !%s\n\n", m.config.Tag)
 	fmt.Fprintf(w, "package %s\n\n", m.config.PackageName)
 	fmt.Fprintf(w, `import (
@@ -458,14 +458,14 @@ func (m *Maker) generateGoHeader(w io.Writer) {
 	`)
 }
 
-func (m *Maker) generateGoTable(w io.Writer, table *table) {
+func (m *Maker) generateGoTable(w *bytes.Buffer, table *table) {
 	m.generateGoTableInsert(w, table)
 	m.generateGoTableSelect(w, table)
 	m.generateGoTableSelectAll(w, table)
 	m.generateGoTableUpdate(w, table)
 }
 
-func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
+func (m *Maker) generateGoTableInsert(w *bytes.Buffer, table *table) {
 	// https://stackoverflow.com/questions/18100782/import-of-50k-records-in-mysql-gives-general-error-1390-prepared-statement-con
 	const maxPlaceholderCount = 65535
 	const maxMaxStructCount = 32
@@ -576,7 +576,7 @@ func (m *Maker) generateGoTableInsert(w io.Writer, table *table) {
 `, strings.Join(values, ", "), len(strPlaceholders), len(insert)-len(strPlaceholders))
 }
 
-func (m *Maker) generateGoTableSelect(w io.Writer, table *table) {
+func (m *Maker) generateGoTableSelect(w *bytes.Buffer, table *table) {
 	fields := make([]string, 0, len(table.columns))
 	goFields := make([]string, 0, len(table.columns))
 	params := make([]string, 0, len(table.primaryKey.columns))
@@ -606,7 +606,7 @@ func (m *Maker) generateGoTableSelect(w io.Writer, table *table) {
 	fmt.Fprintf(w, "}\n\n")
 }
 
-func (m *Maker) generateGoTableSelectAll(w io.Writer, table *table) {
+func (m *Maker) generateGoTableSelectAll(w *bytes.Buffer, table *table) {
 	fields := make([]string, 0, len(table.columns))
 	goFields := make([]string, 0, len(table.columns))
 	for _, c := range table.columns {
@@ -639,7 +639,7 @@ func (m *Maker) generateGoTableSelectAll(w io.Writer, table *table) {
 	fmt.Fprintf(w, "}\n\n")
 }
 
-func (m *Maker) generateGoTableUpdate(w io.Writer, table *table) {
+func (m *Maker) generateGoTableUpdate(w *bytes.Buffer, table *table) {
 	setFields := make([]string, 0, len(table.columns))
 	goFields := make([]string, 0, len(table.columns))
 	params := make([]string, 0, len(table.primaryKey.columns))
