@@ -232,8 +232,8 @@ schema.UpdateUser(context.TODO(), db, &schema.User{
 | `charset=<charset>` |          `CHARACTER SET <charset>`          |
 | `collate=<collate>` |             `COLLATE <collate>`             |
 | `comment=<comment>` |             `COMMENT <comment>`             |
-|  `generated=<expr>`  |  `GENERATED ALWAYS AS (<expr>) VIRTUAL`    |
-|      `stored`       | `STORED` instead of `VIRTUAL` (with `generated`) |
+| `generated=<expr>`  |       `GENERATED ALWAYS AS (<expr>)`        |
+|      `stored`       |        `STORED` (default: `VIRTUAL`)        |
 
 #### Change Column Name
 
@@ -250,6 +250,38 @@ type User struct {
 	Name      string `ddl:"user_name,auto"`
 }
 ```
+
+#### Generated Columns
+
+Use the `generated=<expr>` option to define a [generated column](https://dev.mysql.com/doc/refman/8.0/en/create-table-generated-columns.html).
+Generated columns are `VIRTUAL` by default; add the `stored` option to make them `STORED`.
+
+```go
+type Order struct {
+	ID    int32 `ddl:",auto"`
+	Price int32
+	Count int32
+	Total int32  `ddl:",generated=price * count"`
+	Label string `ddl:",generated=concat(price, ' x ', count),stored"`
+}
+```
+
+```sql
+CREATE TABLE `order` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `price` INTEGER NOT NULL,
+    `count` INTEGER NOT NULL,
+    `total` INTEGER GENERATED ALWAYS AS (price * count) VIRTUAL NOT NULL,
+    `label` VARCHAR(191) GENERATED ALWAYS AS (concat(price, ' x ', count)) STORED NOT NULL,
+    PRIMARY KEY (`id`)
+);
+```
+
+- The expression may contain commas and parentheses in string literals and quoted identifiers, e.g. `generated=concat('(', price, ',', count)`.
+- A pair of parentheses that wraps the whole expression is removed, so `generated=(a + b)` and `generated=a + b` are equivalent.
+- The values of generated columns are computed by the server. The generated `Insert*` and `Update*` functions ignore these fields, and `Select*` and `SelectAll*` return the computed values.
+- A generated column can't be combined with `auto` or `default=<value>`.
+- A `VIRTUAL` generated column can't be a part of the primary key. Use `stored` for such columns.
 
 ## Primary Index
 
